@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: camera-monitor
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8000:8000"
+    environment:
+      - NEXTJS_URL=http://nextjs:3000
+    depends_on:
+      - nextjs
+
+  nextjs:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/camera-monitor?schema=public
+      - NEXTAUTH_SECRET=camera-monitor-secret-change-in-production-1234567890
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXT_PUBLIC_AI_SERVICE_URL=http://localhost:8000
+      - GOOGLE_CLIENT_ID=
+      - GOOGLE_CLIENT_SECRET=
+      - TWILIO_ACCOUNT_SID=
+      - TWILIO_AUTH_TOKEN=
+      - TWILIO_PHONE_NUMBER=
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

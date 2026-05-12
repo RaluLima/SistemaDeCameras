@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"   // ou "sqlite" se você tiver migrado para SQLite
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  nickname        String?  @unique
+  password        String?
+  phone           String?
+  role            Role     @default(USER)
+  emailVerified   DateTime?
+  resetToken      String?
+  resetTokenExpires DateTime?
+  mustChangePassword Boolean @default(false)
+  authProvider    String   @default("credentials")
+  providerId      String?
+  address         Address?
+  cameras         Camera[]
+  ownedGroups     CameraGroup[] @relation("GroupOwner")
+  memberGroups    GroupMember[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Address {
+  id           String @id @default(cuid())
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  zipCode      String
+  country      String @default("Brasil")
+  userId       String @unique
+  user         User   @relation(fields: [userId], references: [id])
+}
+
+model Camera {
+  id          String      @id @default(cuid())
+  name        String
+  rtspUrl     String      @unique
+  type        CameraType  @default(IP)   // novo
+  status      Status      @default(INACTIVE)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  groupId     String?                     // novo: opcional, referência ao grupo
+  group       CameraGroup? @relation(fields: [groupId], references: [id])
+  alerts      Alert[]
+  createdAt   DateTime    @default(now())
+}
+
+model Alert {
+  id          String    @id @default(cuid())
+  type        AlertType
+  description String
+  timestamp   DateTime  @default(now())
+  processed   Boolean   @default(false)
+  cameraId    String
+  camera      Camera    @relation(fields: [cameraId], references: [id])
+}
+
+model CameraGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  userId      String
+  owner       User     @relation("GroupOwner", fields: [userId], references: [id])
+  cameras     Camera[]
+  members     GroupMember[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GroupMember {
+  id        String      @id @default(cuid())
+  groupId   String
+  group     CameraGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User        @relation(fields: [userId], references: [id])
+  role      String      @default("MEMBER")
+  createdAt DateTime    @default(now())
+
+  @@unique([groupId, userId])
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  ERROR
+}
+
+enum AlertType {
+  SUSPICIOUS_MOVEMENT
+  INTRUSION
+  CONNECTION_LOST
+}
+
+// NOVO ENUM
+enum CameraType {
+  IP
+  USB
+  ANALOG
+  WIRELESS
+  OTHER
+}

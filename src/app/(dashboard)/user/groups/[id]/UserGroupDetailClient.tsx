@@ -221,7 +221,7 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
                   </div>
                   <p className="font-medium">{cam.name}</p>
                   <p className="text-xs text-gray-500">Proprietário: {cam.user.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{cam.rtspUrl}</p>
+                  <p className="text-xs text-gray-400 truncate">{cam.streamUrl || "N/A"}</p>
                 </div>
               ))}
             </div>

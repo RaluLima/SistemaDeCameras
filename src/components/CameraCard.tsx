@@ -1,21 +1,44 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
+const typeIcons: Record<string, string> = {
+  IP: "🌐", USB: "🔌", WIRELESS: "📡", ANALOG: "📺", OTHER: "📹",
+};
+
+const typeLabels: Record<string, string> = {
+  IP: "IP", USB: "USB", WIRELESS: "Wireless", ANALOG: "Analógica", OTHER: "Outro",
+};
+
 export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?: boolean }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{camera.name}</CardTitle>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-lg flex-shrink-0">{typeIcons[camera.type] || "📹"}</span>
+          <CardTitle className="text-sm font-medium truncate">{camera.name}</CardTitle>
+        </div>
         <Badge variant={camera.status === "ACTIVE" ? "success" : "destructive"}>
           {camera.status}
         </Badge>
       </CardHeader>
       <CardContent>
-        <div className="aspect-video bg-gray-200 rounded-md mb-2 flex items-center justify-center text-gray-400">
-          📷 Preview
+        <div className="aspect-video bg-gray-200 rounded-md mb-2 flex items-center justify-center text-gray-400 relative overflow-hidden">
+          {camera.streamUrl ? (
+            <span className="text-xs text-center px-2">{camera.streamUrl}</span>
+          ) : (
+            <span className="text-3xl">{typeIcons[camera.type] || "📹"}</span>
+          )}
         </div>
-        {isAdmin && <p className="text-xs text-gray-500">Proprietário: {camera.user?.name || "N/A"}</p>}
-        <p className="text-xs text-gray-400 truncate">{camera.rtspUrl}</p>
+        <div className="flex items-center justify-between">
+          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+            {typeLabels[camera.type] || camera.type}
+          </span>
+          {isAdmin && (
+            <span className="text-xs text-gray-500 truncate ml-2">
+              {camera.user?.name || "N/A"}
+            </span>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

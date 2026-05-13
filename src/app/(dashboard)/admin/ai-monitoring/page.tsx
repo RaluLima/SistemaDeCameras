@@ -22,12 +22,12 @@ export default function AIMonitoringPage() {
     }
   }
 
-  async function startMonitoring(cameraId: string, rtspUrl: string) {
+  async function startMonitoring(cameraId: string, streamUrl: string) {
     try {
       await fetch(`${process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000"}/detect/${cameraId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rtsp_url: rtspUrl }),
+        body: JSON.stringify({ stream_url: streamUrl }),
       });
       toast.success("Monitoramento iniciado");
     } catch {
@@ -50,8 +50,8 @@ export default function AIMonitoringPage() {
         {cameras.map((cam: any) => (
           <div key={cam.id} className="bg-white p-4 rounded-lg shadow">
             <h3 className="font-medium">{cam.name}</h3>
-            <p className="text-sm text-gray-500 truncate">{cam.rtspUrl}</p>
-            <button onClick={() => startMonitoring(cam.id, cam.rtspUrl)} className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+            <p className="text-sm text-gray-500 truncate">{cam.streamUrl || "N/A"}</p>
+            <button onClick={() => startMonitoring(cam.id, cam.streamUrl)} className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
               Iniciar Monitoramento
             </button>
           </div>

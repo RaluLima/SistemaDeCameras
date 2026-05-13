@@ -46,7 +46,7 @@ model Address {
 model Camera {
   id          String      @id @default(cuid())
   name        String
-  rtspUrl     String      @unique
+  streamUrl   String?
   type        CameraType  @default(IP)   // novo
   status      Status      @default(INACTIVE)
   userId      String

@@ -2,6 +2,7 @@ node_modules/
 .next/
 .env
 .env.local
+npm run dev.txt
 *.log
 .DS_Store
 dist/

@@ -3,11 +3,11 @@ services:
     name: camera-monitor
     runtime: node
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build && cp -r prisma .next/standalone/prisma
-    startCommand: cd .next/standalone && npx prisma migrate deploy && npx prisma db seed && node server.js
+    buildCommand: npm install && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && npx prisma db seed && npm start
     healthCheckPath: /
     envVars:
-      - key: HOST
+      - key: HOSTNAME
         value: 0.0.0.0
       - key: NODE_ENV
         value: production

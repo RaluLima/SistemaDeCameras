@@ -67,7 +67,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+    <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
       <h1 className="text-2xl font-bold text-center mb-6">Nova Senha</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -85,7 +85,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-      <Suspense fallback={<div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">Carregando...</div>}>
+      <Suspense fallback={<div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0 text-center">Carregando...</div>}>
         <ResetPasswordForm />
       </Suspense>
     </div>

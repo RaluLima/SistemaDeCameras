@@ -26,8 +26,8 @@ export default async function UserGroupsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Meus Grupos</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Meus Grupos</h1>
         <Link href="/user/groups/new">
           <Button>Novo Grupo</Button>
         </Link>

@@ -19,13 +19,38 @@ export default async function AdminGroupsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Grupos</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Grupos</h1>
         <Link href="/admin/groups/new">
           <Button>Novo Grupo</Button>
         </Link>
       </div>
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      {/* Cards - Mobile */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {groups.map((group) => (
+          <div key={group.id} className="bg-white rounded-lg shadow p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <h3 className="font-semibold text-lg">{group.name}</h3>
+                <p className="text-sm text-gray-500">{group.owner.name}</p>
+              </div>
+              <span className="text-xs text-gray-400 whitespace-nowrap">{group._count.members} membro(s)</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-500">{group._count.cameras} câmera(s)</span>
+              <Link href={`/admin/groups/${group.id}`}>
+                <Button variant="outline" size="sm">Gerenciar</Button>
+              </Link>
+            </div>
+          </div>
+        ))}
+        {groups.length === 0 && (
+          <p className="text-gray-500 col-span-full text-center py-8">Nenhum grupo ainda.</p>
+        )}
+      </div>
+
+      {/* Table - Desktop */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto hidden md:block">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

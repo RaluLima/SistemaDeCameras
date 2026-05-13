@@ -117,7 +117,7 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
                   <label className="block text-sm font-medium text-gray-700">Descrição</label>
                   <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button type="submit" disabled={updating}>
                     {updating ? "Salvando..." : "Salvar"}
                   </Button>
@@ -145,7 +145,7 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
             <CardTitle>Membros ({group.members.length})</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleAddMember} className="flex gap-2 mb-4">
+            <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-2 mb-4">
               <input
                 type="email"
                 value={email}

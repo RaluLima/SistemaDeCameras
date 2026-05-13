@@ -35,7 +35,7 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-        <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md text-center">
+        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0 text-center">
           <div className="text-5xl mb-4">✉️</div>
           <h1 className="text-2xl font-bold mb-4">Email enviado!</h1>
           <p className="text-gray-600 mb-6">
@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
         <h1 className="text-2xl font-bold text-center mb-2">Recuperar Senha</h1>
         <p className="text-sm text-gray-500 text-center mb-6">
           Digite seu email para receber um link de recuperação.

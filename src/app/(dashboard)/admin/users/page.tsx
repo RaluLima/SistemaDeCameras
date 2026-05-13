@@ -110,14 +110,41 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Usuários</h1>
-        <button onClick={() => { setTempPassword(null); setShowAddModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold">Usuários</h1>
+        <button onClick={() => { setTempPassword(null); setShowAddModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm whitespace-nowrap">
           + Novo Usuário
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
+      {/* Cards - Mobile */}
+      <div className="grid grid-cols-1 gap-4 md:hidden">
+        {users.map((user) => (
+          <div key={user.id} className="bg-white rounded-lg shadow p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <h3 className="font-semibold">{user.name}</h3>
+                <p className="text-sm text-gray-500">{user.email}</p>
+              </div>
+              <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800"}`}>
+                {user.role}
+              </span>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">Tel: {user.phone || "-"}</p>
+            <div className="flex gap-3 text-sm border-t pt-3">
+              <Link href={`/admin/users/${user.id}`} className="text-blue-600 hover:underline">Editar</Link>
+              <button onClick={() => setShowPasswordModal({ id: user.id, name: user.name })} className="text-yellow-600 hover:underline">Nova Senha</button>
+              <button onClick={() => handleDelete(user.id, user.name)} className="text-red-600 hover:underline">Remover</button>
+            </div>
+          </div>
+        ))}
+        {users.length === 0 && !loading && (
+          <p className="text-gray-500 col-span-full text-center py-8">Nenhum usuário encontrado.</p>
+        )}
+      </div>
+
+      {/* Table - Desktop */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto hidden md:block">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>

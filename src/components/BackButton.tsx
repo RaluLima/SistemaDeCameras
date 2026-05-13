@@ -6,7 +6,7 @@ export function BackButton({ href }: { href?: string }) {
   return (
     <button
       onClick={() => (href ? router.push(href) : router.back())}
-      className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-4"
+      className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-1 mb-4 transition-colors"
     >
       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

@@ -103,21 +103,21 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
           {isAdmin ? "Todas as Câmeras" : "Minhas Câmeras"}
         </h1>
-        <button onClick={openAdd} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm whitespace-nowrap">
+        <button onClick={openAdd} className="btn-primary whitespace-nowrap">
           + Nova Câmera
         </button>
       </div>
 
       {cameras.length === 0 ? (
-        <div className="text-center py-16 bg-white rounded-lg shadow">
+        <div className="text-center py-16 card">
           <div className="text-5xl mb-4">📷</div>
-          <p className="text-gray-500 text-lg mb-4">
+          <p className="text-gray-500 dark:text-gray-400 text-lg mb-4">
             {isAdmin ? "Nenhuma câmera cadastrada ainda." : "Você ainda não possui câmeras."}
           </p>
-          <button onClick={openAdd} className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+          <button onClick={openAdd} className="btn-primary">
             Adicionar primeira câmera
           </button>
         </div>
@@ -144,25 +144,25 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setShowModal(false)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">{editingId ? "Editar Câmera" : "Nova Câmera"}</h2>
+        <div className="modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="modal-content max-w-lg" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">{editingId ? "Editar Câmera" : "Nova Câmera"}</h2>
             <form onSubmit={handleSave} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nome *</label>
-                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Ex: Câmera da Entrada" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome *</label>
+                <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="input-field" placeholder="Ex: Câmera da Entrada" />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {cameraTypes.map((t) => (
-                    <label key={t.value} className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-colors ${form.type === t.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"}`}>
+                    <label key={t.value} className={`flex items-center gap-3 p-3 rounded-md border cursor-pointer transition-colors ${form.type === t.value ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-200"}`}>
                       <input type="radio" name="type" value={t.value} checked={form.type === t.value} onChange={(e) => setForm({ ...form, type: e.target.value })} className="sr-only" />
                       <span className="text-lg">{typeIcon[t.value]}</span>
                       <div>
                         <p className="text-sm font-medium">{t.label}</p>
-                        <p className="text-xs text-gray-400">{t.description}</p>
+                        <p className="text-xs text-gray-400 dark:text-gray-500">{t.description}</p>
                       </div>
                     </label>
                   ))}
@@ -170,22 +170,22 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   URL do Stream {form.type === "IP" ? "(RTSP) *" : "(opcional)"}
                 </label>
                 <input
                   value={form.streamUrl}
                   onChange={(e) => setForm({ ...form, streamUrl: e.target.value })}
                   required={form.type === "IP"}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                  className="input-field"
                   placeholder={form.type === "IP" ? "rtsp://192.168.1.100:554/stream" : form.type === "USB" ? "/dev/video0" : "URL ou identificador"}
                 />
-                {form.type !== "IP" && <p className="text-xs text-gray-400 mt-1">Deixe em branco se não houver URL de stream.</p>}
+                {form.type !== "IP" && <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Deixe em branco se não houver URL de stream.</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">Status</label>
-                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })} className="input-field">
                   <option value="ACTIVE">Ativa</option>
                   <option value="INACTIVE">Inativa</option>
                   <option value="ERROR">Erro</option>
@@ -193,8 +193,8 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
               </div>
 
               <div className="flex gap-2 justify-end pt-2">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-md hover:bg-gray-50 text-sm">Cancelar</button>
-                <button type="submit" disabled={saving} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 text-sm">
+                <button type="button" onClick={() => setShowModal(false)} className="btn-outline text-sm">Cancelar</button>
+                <button type="submit" disabled={saving} className="btn-primary text-sm">
                   {saving ? "Salvando..." : editingId ? "Atualizar" : "Adicionar"}
                 </button>
               </div>

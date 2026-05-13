@@ -111,8 +111,8 @@ export default function AdminUsersPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold">Usuários</h1>
-        <button onClick={() => { setTempPassword(null); setShowAddModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm whitespace-nowrap">
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Usuários</h1>
+        <button onClick={() => { setTempPassword(null); setShowAddModal(true); }} className="btn-primary whitespace-nowrap">
           + Novo Usuário
         </button>
       </div>
@@ -120,18 +120,18 @@ export default function AdminUsersPage() {
       {/* Cards - Mobile */}
       <div className="grid grid-cols-1 gap-4 md:hidden">
         {users.map((user) => (
-          <div key={user.id} className="bg-white rounded-lg shadow p-4">
+          <div key={user.id} className="card p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
-                <h3 className="font-semibold">{user.name}</h3>
-                <p className="text-sm text-gray-500">{user.email}</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">{user.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
               </div>
               <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800"}`}>
                 {user.role}
               </span>
             </div>
-            <p className="text-sm text-gray-500 mb-3">Tel: {user.phone || "-"}</p>
-            <div className="flex gap-3 text-sm border-t pt-3">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Tel: {user.phone || "-"}</p>
+            <div className="flex gap-3 text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
               <Link href={`/admin/users/${user.id}`} className="text-blue-600 hover:underline">Editar</Link>
               <button onClick={() => setShowPasswordModal({ id: user.id, name: user.name })} className="text-yellow-600 hover:underline">Nova Senha</button>
               <button onClick={() => handleDelete(user.id, user.name)} className="text-red-600 hover:underline">Remover</button>
@@ -144,25 +144,25 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Table - Desktop */}
-      <div className="bg-white rounded-lg shadow overflow-x-auto hidden md:block">
+      <div className="card overflow-x-auto hidden md:block">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-dark-200">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nome</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefone</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ações</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Nome</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Email</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Telefone</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Tipo</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {users.map((user) => (
               <tr key={user.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{user.phone || "-"}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-900 dark:text-gray-100">{user.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">{user.email}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-gray-700 dark:text-gray-300">{user.phone || "-"}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800"}`}>
+                  <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300" : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"}`}>
                     {user.role}
                   </span>
                 </td>
@@ -178,40 +178,40 @@ export default function AdminUsersPage() {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowAddModal(false)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-4">Novo Usuário</h2>
+              <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">Novo Usuário</h2>
             <form onSubmit={handleAddUser} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">Nome</label>
-                <input type="text" name="name" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+                <input type="text" name="name" required className="input-field" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" name="email" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                <input type="email" name="email" required className="input-field" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Apelido (opcional)</label>
-                <input type="text" name="nickname" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Apelido (opcional)</label>
+                <input type="text" name="nickname" className="input-field" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Telefone</label>
-                <input type="tel" name="phone" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefone</label>
+                <input type="tel" name="phone" className="input-field" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Senha temporária</label>
-                <input type="password" name="password" required minLength={6} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha temporária</label>
+                <input type="password" name="password" required minLength={6} className="input-field" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">Tipo</label>
-                <select name="role" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label>
+                <select name="role" className="input-field">
                   <option value="USER">Usuário</option>
                   <option value="ADMIN">Administrador</option>
                 </select>
               </div>
               <div className="flex gap-2 justify-end">
-                <button type="button" onClick={() => setShowAddModal(false)} className="px-4 py-2 border rounded-md hover:bg-gray-50">Cancelar</button>
-                <button type="submit" disabled={addLoading} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50">
+                <button type="button" onClick={() => setShowAddModal(false)} className="btn-outline">Cancelar</button>
+                <button type="submit" disabled={addLoading} className="btn-primary">
                   {addLoading ? "Criando..." : "Criar"}
                 </button>
               </div>
@@ -221,16 +221,16 @@ export default function AdminUsersPage() {
       )}
 
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowPasswordModal(null)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-2">Gerar nova senha</h2>
-            <p className="text-gray-600 mb-6">
-              Uma nova senha temporária será gerada para <strong>{showPasswordModal.name}</strong>.
+        <div className="modal-overlay" onClick={() => setShowPasswordModal(null)}>
+          <div className="modal-content max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">Gerar nova senha</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Uma nova senha temporária será gerada para <strong className="text-gray-900 dark:text-gray-100">{showPasswordModal.name}</strong>.
               O usuário será obrigado a trocar a senha no próximo login.
             </p>
             <div className="flex gap-2 justify-center">
-              <button onClick={() => setShowPasswordModal(null)} className="px-4 py-2 border rounded-md hover:bg-gray-50">Cancelar</button>
-              <button onClick={() => handleGeneratePassword(showPasswordModal.id)} disabled={genLoading} className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 disabled:opacity-50">
+              <button onClick={() => setShowPasswordModal(null)} className="btn-outline">Cancelar</button>
+              <button onClick={() => handleGeneratePassword(showPasswordModal.id)} disabled={genLoading} className="btn-primary !bg-yellow-600 hover:!bg-yellow-700">
                 {genLoading ? "Gerando..." : "Confirmar"}
               </button>
             </div>
@@ -239,15 +239,15 @@ export default function AdminUsersPage() {
       )}
 
       {tempPassword && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setTempPassword(null)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-xl font-bold mb-2">Senha Temporária</h2>
-            <p className="text-gray-600 mb-2">Compartilhe esta senha com o usuário:</p>
-            <div className="text-2xl font-mono font-bold bg-gray-100 p-4 rounded mb-4 select-all">
+        <div className="modal-overlay" onClick={() => setTempPassword(null)}>
+          <div className="modal-content max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">Senha Temporária</h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-2">Compartilhe esta senha com o usuário:</p>
+            <div className="text-2xl font-mono font-bold bg-gray-100 dark:bg-dark-200 p-4 rounded mb-4 select-all text-gray-900 dark:text-gray-100">
               {tempPassword}
             </div>
-            <p className="text-sm text-gray-500 mb-4">O usuário será obrigado a trocar a senha no próximo login.</p>
-            <button onClick={() => { setTempPassword(null); router.refresh(); }} className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">O usuário será obrigado a trocar a senha no próximo login.</p>
+            <button onClick={() => { setTempPassword(null); router.refresh(); }} className="btn-primary">
               Fechar
             </button>
           </div>

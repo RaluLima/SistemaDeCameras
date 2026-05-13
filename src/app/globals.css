@@ -1,8 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @layer base {
+  html {
+    @apply transition-colors duration-200;
+  }
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-gray-50 text-gray-900 dark:bg-dark-300 dark:text-gray-100 transition-colors duration-200;
+  }
+  * {
+    @apply border-gray-200 dark:border-gray-700;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white dark:bg-dark-100 rounded-lg shadow-sm dark:shadow-xl dark:shadow-black/20 border border-gray-100 dark:border-gray-800;
+  }
+  .btn-primary {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm font-medium;
+  }
+  .btn-outline {
+    @apply border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-100 text-gray-700 dark:text-gray-200 px-4 py-2 rounded-md hover:bg-gray-50 dark:hover:bg-dark-200 transition-colors text-sm;
+  }
+  .input-field {
+    @apply block w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-dark-200 px-3 py-2 shadow-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors;
+  }
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4 backdrop-blur-sm;
+  }
+  .modal-content {
+    @apply bg-white dark:bg-dark-100 p-6 rounded-lg shadow-xl w-full border border-gray-100 dark:border-gray-800;
   }
 }

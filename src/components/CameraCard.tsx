@@ -22,7 +22,7 @@ export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?:
         </Badge>
       </CardHeader>
       <CardContent>
-        <div className="aspect-video bg-gray-200 rounded-md mb-2 flex items-center justify-center text-gray-400 relative overflow-hidden">
+        <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-md mb-2 flex items-center justify-center text-gray-400 dark:text-gray-500 relative overflow-hidden">
           {camera.streamUrl ? (
             <span className="text-xs text-center px-2">{camera.streamUrl}</span>
           ) : (
@@ -30,11 +30,11 @@ export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?:
           )}
         </div>
         <div className="flex items-center justify-between">
-          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-600">
+          <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
             {typeLabels[camera.type] || camera.type}
           </span>
           {isAdmin && (
-            <span className="text-xs text-gray-500 truncate ml-2">
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate ml-2">
               {camera.user?.name || "N/A"}
             </span>
           )}

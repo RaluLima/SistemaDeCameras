@@ -110,18 +110,18 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
             <CardContent>
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Nome</label>
-                  <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Descrição</label>
-                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button type="submit" disabled={updating}>
                     {updating ? "Salvando..." : "Salvar"}
                   </Button>
-                  <Button type="button" variant="outline" onClick={handleDelete} className="text-red-600 border-red-300 hover:bg-red-50">
+                  <Button type="button" variant="outline" onClick={handleDelete} className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20">
                     Excluir Grupo
                   </Button>
                 </div>
@@ -134,7 +134,7 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
           <CardHeader><CardTitle>Proprietário</CardTitle></CardHeader>
           <CardContent>
             <p className="font-medium">{group.owner.name}</p>
-            <p className="text-sm text-gray-500">{group.owner.email}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{group.owner.email}</p>
           </CardContent>
         </Card>
       </div>
@@ -152,24 +152,24 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email do usuário cadastrado..."
                 required
-                className="flex-1 rounded-md border border-gray-300 px-3 py-2 shadow-sm"
+                className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm"
               />
               <Button type="submit" disabled={adding}>
                 {adding ? "Adicionando..." : "Adicionar"}
               </Button>
             </form>
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
               Apenas usuários já cadastrados no sistema podem ser adicionados.
             </p>
             <div className="space-y-2">
               {group.members.map((member: any) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-200 rounded-md">
                   <div>
-                    <p className="font-medium">{member.user.name}</p>
-                    <p className="text-sm text-gray-500">{member.user.email}</p>
+                    <p className="font-medium dark:text-gray-100">{member.user.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{member.user.email}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${member.role === "OWNER" ? "bg-yellow-100 text-yellow-800" : "bg-blue-100 text-blue-800"}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full ${member.role === "OWNER" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"}`}>
                       {member.role}
                     </span>
                     {member.role !== "OWNER" && (
@@ -181,7 +181,7 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
                 </div>
               ))}
               {group.members.length === 0 && (
-                <p className="text-gray-500 text-sm">Nenhum membro no grupo.</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm">Nenhum membro no grupo.</p>
               )}
             </div>
           </CardContent>
@@ -194,12 +194,12 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
           <CardContent>
             <div className="space-y-2">
               {group.members.map((member: any) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-dark-200 rounded-md">
                   <div>
-                    <p className="font-medium">{member.user.name}</p>
-                    <p className="text-sm text-gray-500">{member.user.email}</p>
+                    <p className="font-medium dark:text-gray-100">{member.user.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{member.user.email}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${member.role === "OWNER" ? "bg-yellow-100 text-yellow-800" : "bg-blue-100 text-blue-800"}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${member.role === "OWNER" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"}`}>
                     {member.role}
                   </span>
                 </div>
@@ -215,13 +215,13 @@ export function UserGroupDetailClient({ group, currentUserId, isOwner }: Props) 
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {group.cameras.map((cam: any) => (
-                <div key={cam.id} className="bg-gray-50 rounded-lg p-4">
-                  <div className="aspect-video bg-gray-200 rounded-md mb-2 flex items-center justify-center text-gray-400">
+                <div key={cam.id} className="bg-gray-50 dark:bg-dark-200 rounded-lg p-4">
+                  <div className="aspect-video bg-gray-200 dark:bg-gray-700 rounded-md mb-2 flex items-center justify-center text-gray-400 dark:text-gray-500">
                     📷 Preview
                   </div>
-                  <p className="font-medium">{cam.name}</p>
-                  <p className="text-xs text-gray-500">Proprietário: {cam.user.name}</p>
-                  <p className="text-xs text-gray-400 truncate">{cam.streamUrl || "N/A"}</p>
+                  <p className="font-medium dark:text-gray-100">{cam.name}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Proprietário: {cam.user.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{cam.streamUrl || "N/A"}</p>
                 </div>
               ))}
             </div>

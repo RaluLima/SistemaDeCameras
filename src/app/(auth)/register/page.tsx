@@ -44,10 +44,10 @@ export default function RegisterPage() {
   if (step === "success") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-        <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0 text-center">
+        <div className="bg-white dark:bg-dark-100 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0 text-center">
           <div className="text-5xl mb-4">📧</div>
-          <h1 className="text-2xl font-bold mb-4">Cadastro realizado!</h1>
-          <p className="text-gray-600 mb-6">
+          <h1 className="text-2xl font-bold mb-4 dark:text-gray-100">Cadastro realizado!</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Sua conta foi criada. Agora você pode fazer login.
           </p>
           <Link
@@ -63,36 +63,36 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
-        <h1 className="text-2xl font-bold text-center mb-6">Criar Conta</h1>
+      <div className="bg-white dark:bg-dark-100 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
+        <h1 className="text-2xl font-bold text-center mb-6 dark:text-gray-100">Criar Conta</h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Nome</label>
-            <input type="text" name="name" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Seu nome" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+            <input type="text" name="name" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="Seu nome" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input type="email" name="email" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="seu@email.com" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+            <input type="email" name="email" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="seu@email.com" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Apelido (opcional - use para login)</label>
-            <input type="text" name="nickname" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="meu-apelido" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Apelido (opcional - use para login)</label>
+            <input type="text" name="nickname" className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="meu-apelido" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Telefone (opcional)</label>
-            <input type="tel" name="phone" className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="(11) 99999-9999" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefone (opcional)</label>
+            <input type="tel" name="phone" className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="(11) 99999-9999" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input type="password" name="password" required minLength={6} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Mínimo 6 caracteres" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+            <input type="password" name="password" required minLength={6} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="Mínimo 6 caracteres" />
           </div>
           <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50">
             {loading ? "Cadastrando..." : "Cadastrar"}
           </button>
         </form>
-        <div className="mt-4 text-center text-sm text-gray-500">
+        <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
           Já tem conta?{" "}
-          <Link href="/login" className="text-blue-600 hover:underline">
+          <Link href="/login" className="text-blue-600 dark:text-blue-400 hover:underline">
             Faça login
           </Link>
         </div>

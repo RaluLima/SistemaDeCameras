@@ -44,7 +44,7 @@ export default async function UserGroupDetailPage({ params }: { params: { id: st
   return (
     <div>
       <BackButton href="/user/groups" />
-      <h1 className="text-3xl font-bold mb-6">{group.name}</h1>
+      <h1 className="text-3xl font-bold mb-6 dark:text-gray-100">{group.name}</h1>
       <UserGroupDetailClient group={safeGroup} currentUserId={userId} isOwner={isOwner} />
     </div>
   );

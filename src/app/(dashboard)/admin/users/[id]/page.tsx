@@ -25,7 +25,7 @@ export default async function EditUserPage({ params }: { params: { id: string } 
   return (
     <div>
       <BackButton href="/admin/users" />
-      <h1 className="text-3xl font-bold mb-6">Editar Usuário</h1>
+      <h1 className="text-3xl font-bold mb-6 dark:text-gray-100">Editar Usuário</h1>
       <UserForm user={safeUser} />
       <div className="mt-6">
         <PasswordActions user={safeUser} />

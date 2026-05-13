@@ -27,9 +27,9 @@ export function PasswordActions({ user }: { user: { id: string; name: string; mu
   }
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow max-w-2xl">
-      <h2 className="text-lg font-semibold mb-2">Senha</h2>
-      <p className="text-gray-600 text-sm mb-4">
+    <div className="bg-white dark:bg-dark-100 p-6 rounded-lg shadow max-w-2xl">
+      <h2 className="text-lg font-semibold mb-2 dark:text-gray-100">Senha</h2>
+      <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
         {user.mustChangePassword
           ? "Este usuário está com senha temporária e precisa trocá-la no próximo login."
           : "Gere uma nova senha temporária. O usuário será obrigado a trocá-la no próximo login."}
@@ -43,14 +43,14 @@ export function PasswordActions({ user }: { user: { id: string; name: string; mu
       </button>
 
       {showConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowConfirm(false)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-2">Confirmar</h3>
-            <p className="text-gray-600 mb-6">
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50" onClick={() => setShowConfirm(false)}>
+          <div className="bg-white dark:bg-dark-100 p-6 rounded-lg shadow-xl max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold mb-2 dark:text-gray-100">Confirmar</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               Uma nova senha temporária será gerada para <strong>{user.name}</strong>.
             </p>
             <div className="flex gap-2 justify-center">
-              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border rounded-md hover:bg-gray-50">Cancelar</button>
+              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 border rounded-md hover:bg-gray-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-dark-200">Cancelar</button>
               <button onClick={handleGenerate} className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700">Confirmar</button>
             </div>
           </div>
@@ -58,11 +58,11 @@ export function PasswordActions({ user }: { user: { id: string; name: string; mu
       )}
 
       {tempPassword && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setTempPassword(null)}>
-          <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-2">Senha Temporária</h3>
-            <div className="text-2xl font-mono font-bold bg-gray-100 p-4 rounded mb-4 select-all">{tempPassword}</div>
-            <p className="text-sm text-gray-500 mb-4">Compartilhe com o usuário.</p>
+          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50" onClick={() => setTempPassword(null)}>
+          <div className="bg-white dark:bg-dark-100 p-6 rounded-lg shadow-xl max-w-sm text-center" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-xl font-bold mb-2 dark:text-gray-100">Senha Temporária</h3>
+            <div className="text-2xl font-mono font-bold bg-gray-100 dark:bg-dark-200 p-4 rounded mb-4 select-all dark:text-gray-100">{tempPassword}</div>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Compartilhe com o usuário.</p>
             <button onClick={() => setTempPassword(null)} className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">Fechar</button>
           </div>
         </div>

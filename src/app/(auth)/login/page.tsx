@@ -62,17 +62,17 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 to-gray-800">
-      <div className="bg-white p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
-        <h1 className="text-2xl font-bold text-center mb-6">Camera Monitor</h1>
+      <div className="bg-white dark:bg-dark-100 p-6 sm:p-8 rounded-lg shadow-xl w-full max-w-md mx-4 sm:mx-0">
+        <h1 className="text-2xl font-bold text-center mb-6 dark:text-gray-100">Camera Monitor</h1>
 
         <form onSubmit={handleCredentials} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Email ou Apelido</label>
-            <input type="text" name="email" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="seu@email.com ou apelido" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email ou Apelido</label>
+            <input type="text" name="email" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="seu@email.com ou apelido" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Senha</label>
-            <input type="password" name="password" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="••••••" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha</label>
+            <input type="password" name="password" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="••••••" />
           </div>
           <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50">
             {loading ? "Entrando..." : "Entrar"}
@@ -80,21 +80,21 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-2 text-right">
-          <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+          <Link href="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
             Esqueceu a senha?
           </Link>
         </div>
 
         <div className="mt-4 flex items-center gap-2">
           <hr className="flex-1" />
-          <span className="text-sm text-gray-400">ou</span>
+          <span className="text-sm text-gray-400 dark:text-gray-500">ou</span>
           <hr className="flex-1" />
         </div>
 
         <div className="mt-4 space-y-2">
           <button
             onClick={handleGoogle}
-            className="w-full flex items-center justify-center gap-2 bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-50"
+            className="w-full flex items-center justify-center gap-2 bg-white dark:bg-dark-200 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 py-2 px-4 rounded-md hover:bg-gray-50 dark:hover:bg-dark-300"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
@@ -106,8 +106,8 @@ export default function LoginPage() {
           </button>
         </div>
 
-        <div className="mt-4 text-center text-sm text-gray-500">
-          <Link href="/register" className="text-blue-600 hover:underline font-medium">
+        <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">
+          <Link href="/register" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
             Criar conta
           </Link>
         </div>

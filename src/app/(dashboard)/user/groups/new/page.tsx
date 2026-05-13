@@ -40,15 +40,15 @@ export default function NewUserGroupPage() {
   return (
     <div>
       <BackButton href="/user/groups" />
-      <h1 className="text-3xl font-bold mb-6">Novo Grupo</h1>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
+      <h1 className="text-3xl font-bold mb-6 dark:text-gray-100">Novo Grupo</h1>
+      <form onSubmit={handleSubmit} className="bg-white dark:bg-dark-100 p-6 rounded-lg shadow space-y-4 max-w-2xl">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Nome</label>
-          <input type="text" name="name" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Nome do grupo" />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+          <input type="text" name="name" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="Nome do grupo" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Descrição (opcional)</label>
-          <textarea name="description" rows={3} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Descrição do grupo" />
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição (opcional)</label>
+          <textarea name="description" rows={3} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="Descrição do grupo" />
         </div>
         <Button type="submit" disabled={loading}>
           {loading ? "Criando..." : "Criar Grupo"}

@@ -45,19 +45,19 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="max-w-md mx-auto mt-10">
-      <div className="bg-white p-8 rounded-lg shadow">
-        <h1 className="text-2xl font-bold mb-2">Alterar Senha</h1>
-        <p className="text-gray-600 mb-6">
+      <div className="bg-white dark:bg-dark-100 p-8 rounded-lg shadow">
+        <h1 className="text-2xl font-bold mb-2 dark:text-gray-100">Alterar Senha</h1>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
           Você está usando uma senha temporária. Defina uma nova senha.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">Senha atual</label>
-            <input type="password" name="currentPassword" required className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Senha atual</label>
+            <input type="password" name="currentPassword" required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Nova senha</label>
-            <input type="password" name="newPassword" required minLength={6} className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm" placeholder="Mínimo 6 caracteres" />
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nova senha</label>
+            <input type="password" name="newPassword" required minLength={6} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" placeholder="Mínimo 6 caracteres" />
           </div>
           <button type="submit" disabled={loading} className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50">
             {loading ? "Alterando..." : "Alterar senha"}

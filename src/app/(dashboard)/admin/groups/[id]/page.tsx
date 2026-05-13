@@ -24,7 +24,7 @@ export default async function AdminGroupDetailPage({ params }: { params: { id: s
   return (
     <div>
       <BackButton href="/admin/groups" />
-      <h1 className="text-3xl font-bold mb-6">{group.name}</h1>
+      <h1 className="text-3xl font-bold mb-6 dark:text-gray-100">{group.name}</h1>
       <GroupDetailClient group={group} />
     </div>
   );

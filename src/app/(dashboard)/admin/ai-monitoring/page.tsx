@@ -40,17 +40,17 @@ export default function AIMonitoringPage() {
     }
   }
 
-  if (loading) return <p>Carregando...</p>;
+  if (loading) return <p className="dark:text-gray-400">Carregando...</p>;
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-6">Monitoramento com IA</h1>
-      <p className="text-gray-600 mb-4">Inicie o serviço Python para detecção real ou use o modo simulação.</p>
+      <h1 className="text-3xl font-bold mb-6 dark:text-gray-100">Monitoramento com IA</h1>
+      <p className="text-gray-600 dark:text-gray-400 mb-4">Inicie o serviço Python para detecção real ou use o modo simulação.</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cameras.map((cam: any) => (
-          <div key={cam.id} className="bg-white p-4 rounded-lg shadow">
-            <h3 className="font-medium">{cam.name}</h3>
-            <p className="text-sm text-gray-500 truncate">{cam.streamUrl || "N/A"}</p>
+          <div key={cam.id} className="bg-white dark:bg-dark-100 p-4 rounded-lg shadow">
+            <h3 className="font-medium dark:text-gray-100">{cam.name}</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{cam.streamUrl || "N/A"}</p>
             <button onClick={() => startMonitoring(cam.id, cam.streamUrl)} className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
               Iniciar Monitoramento
             </button>

@@ -20,10 +20,10 @@ services:
       - key: NEXTAUTH_URL
         value: https://sistemadecameras.onrender.com
       - key: NEXT_PUBLIC_AI_SERVICE_URL
-        value: https://camera-monitor-ai.onrender.com
+        value: https://servicoia.onrender.com
 
   - type: web
-    name: camera-monitor-ai
+    name: ServicoIa
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt

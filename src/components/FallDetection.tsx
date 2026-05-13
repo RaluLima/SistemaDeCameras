@@ -100,6 +100,25 @@ export function FallDetection() {
     return false;
   }, []);
 
+  const AI_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";
+
+  const sendFrameToAI = useCallback(async (video: HTMLVideoElement) => {
+    try {
+      const offscreen = document.createElement("canvas");
+      offscreen.width = 320;
+      offscreen.height = 240;
+      const ctx = offscreen.getContext("2d");
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0, 320, 240);
+      const blob = await new Promise<Blob | null>((r) => offscreen.toBlob(r, "image/jpeg", 0.7));
+      if (!blob) return;
+      const form = new FormData();
+      form.append("file", blob, "frame.jpg");
+      form.append("camera_id", "local-webcam");
+      await fetch(`${AI_URL}/detect-frame`, { method: "POST", body: form });
+    } catch {}
+  }, [AI_URL]);
+
   const sendAlert = useCallback(async () => {
     playAlert();
     toast.error("⚠️ QUEDA DETECTADA!", { duration: 6000, id: "fall-alert" });
@@ -190,6 +209,11 @@ export function FallDetection() {
       cameraRef.current = cam;
       cam.start();
       setStatus("Monitorando...");
+
+      const ivl = setInterval(() => {
+        if (videoRef.current) sendFrameToAI(videoRef.current);
+      }, 2000);
+      (window as any).__fallDetectionInterval = ivl;
     } catch (err) {
       toast.error("Erro ao acessar câmera: " + ((err as any)?.message || ""));
       setStatus("Erro");
@@ -210,6 +234,7 @@ export function FallDetection() {
     }
     poseRef.current = null;
     cancelAnimationFrame(animRef.current);
+    clearInterval((window as any).__fallDetectionInterval);
   }, []);
 
   useEffect(() => {

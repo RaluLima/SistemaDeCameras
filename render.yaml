@@ -19,6 +19,20 @@ services:
         generateValue: true
       - key: NEXTAUTH_URL
         value: https://sistemadecameras.onrender.com
+      - key: NEXT_PUBLIC_AI_SERVICE_URL
+        value: https://camera-monitor-ai.onrender.com
+
+  - type: web
+    name: camera-monitor-ai
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    healthCheckPath: /health
+    sourceDir: ai-service
+    envVars:
+      - key: NEXTJS_URL
+        value: https://sistemadecameras.onrender.com
 
 databases:
   - name: camera-monitor-db

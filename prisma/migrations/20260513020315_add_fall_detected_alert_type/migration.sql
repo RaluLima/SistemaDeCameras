@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "AlertType" ADD VALUE 'FALL_DETECTED';

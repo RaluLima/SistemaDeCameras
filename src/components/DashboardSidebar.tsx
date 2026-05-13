@@ -11,6 +11,7 @@ const adminLinks = [
   { href: "/admin/groups", label: "Grupos", icon: "📁" },
   { href: "/admin/cameras", label: "Câmeras", icon: "📷" },
   { href: "/admin/ai-monitoring", label: "Monitoramento IA", icon: "🤖" },
+  { href: "/admin/fall-detection", label: "Detecção de Quedas", icon: "⚠️" },
 ];
 
 const userLinks = [

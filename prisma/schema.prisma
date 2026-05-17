@@ -25,6 +25,7 @@ model User {
   cameras         Camera[]
   ownedGroups     CameraGroup[] @relation("GroupOwner")
   memberGroups    GroupMember[]
+  pushTokens      PushToken[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
@@ -54,6 +55,7 @@ model Camera {
   groupId     String?                     // novo: opcional, referência ao grupo
   group       CameraGroup? @relation(fields: [groupId], references: [id])
   alerts      Alert[]
+  recordings  Recording[]
   createdAt   DateTime    @default(now())
 }
 
@@ -65,6 +67,7 @@ model Alert {
   processed   Boolean   @default(false)
   cameraId    String
   camera      Camera    @relation(fields: [cameraId], references: [id])
+  recordings  Recording[]
 }
 
 model CameraGroup {
@@ -107,6 +110,28 @@ enum AlertType {
   INTRUSION
   CONNECTION_LOST
   FALL_DETECTED
+}
+
+model PushToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  platform  String   @default("expo")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Recording {
+  id        String   @id @default(cuid())
+  cameraId  String
+  camera    Camera   @relation(fields: [cameraId], references: [id], onDelete: Cascade)
+  alertId   String?
+  alert     Alert?   @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  filePath  String
+  duration  Int      @default(0)
+  size      Int      @default(0)
+  createdAt DateTime @default(now())
 }
 
 // NOVO ENUM

@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getAuthUser } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "ADMIN") {
+    const auth = await getAuthUser(req);
+    if (!auth || auth.role !== "ADMIN") {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
     const users = await prisma.user.findMany({ include: { address: true }, orderBy: { createdAt: "desc" } });
@@ -19,8 +18,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "ADMIN") {
+    const auth = await getAuthUser(req);
+    if (!auth || auth.role !== "ADMIN") {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 

@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { verifyToken } from '@/lib/jwt';
+import { getAuthUser } from '@/lib/auth-helpers';
 import prisma from '@/lib/prisma';
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get('authorization');
-  if (auth?.startsWith('Bearer ')) {
-    const payload = await verifyToken(auth.slice(7));
-    if (payload?.sub) return payload.sub as string;
-  }
-  const session = await getServerSession(authOptions);
-  return (session?.user as any)?.id || null;
-}
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const auth = await getAuthUser(req);
+    if (!auth) {
       return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
     }
 
@@ -28,8 +16,8 @@ export async function POST(req: NextRequest) {
 
     await prisma.pushToken.upsert({
       where: { token },
-      update: { userId, platform: platform || 'expo', updatedAt: new Date() },
-      create: { token, userId, platform: platform || 'expo' },
+      update: { userId: auth.id, platform: platform || 'expo', updatedAt: new Date() },
+      create: { token, userId: auth.id, platform: platform || 'expo' },
     });
 
     return NextResponse.json({ status: 'ok' });

@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    const auth = await getAuthUser(req);
+    if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const userId = (session.user as any).id;
-    const role = (session.user as any).role;
     const { email } = await req.json();
 
     if (!email) {
@@ -19,7 +16,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
-    if (role !== "ADMIN" && group.userId !== userId) {
+    if (auth.role !== "ADMIN" && group.userId !== auth.id) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 
@@ -48,11 +45,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    const auth = await getAuthUser(req);
+    if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const userId = (session.user as any).id;
-    const role = (session.user as any).role;
     const { searchParams } = new URL(req.url);
     const memberId = searchParams.get("memberId");
 
@@ -63,7 +58,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
     const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
-    if (role !== "ADMIN" && group.userId !== userId) {
+    if (auth.role !== "ADMIN" && group.userId !== auth.id) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 

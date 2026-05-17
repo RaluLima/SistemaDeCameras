@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { getAuthUser } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const auth = await getAuthUser(req);
+    if (!auth) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 
     const { currentPassword, newPassword } = await req.json();
-    const userId = (session.user as any).id;
 
     if (!currentPassword || !newPassword) {
       return NextResponse.json({ error: "Senhas obrigatórias" }, { status: 400 });
@@ -22,7 +20,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Senha deve ter no mínimo 6 caracteres" }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id: auth.id } });
     if (!user || !user.password) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
     }
@@ -35,7 +33,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: auth.id },
       data: {
         password: hashedPassword,
         mustChangePassword: false,

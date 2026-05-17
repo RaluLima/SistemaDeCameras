@@ -1,14 +1,13 @@
-import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-export async function POST(_req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || (session.user as any).role !== "ADMIN") {
+    const auth = await getAuthUser(req);
+    if (!auth || auth.role !== "ADMIN") {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 

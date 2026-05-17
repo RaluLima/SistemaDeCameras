@@ -1,28 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import { verifyToken } from '@/lib/jwt';
+import { getAuthUser } from '@/lib/auth-helpers';
 import prisma from '@/lib/prisma';
 import fs from 'fs';
 import path from 'path';
-
-async function getUserId(req: NextRequest): Promise<string | null> {
-  const auth = req.headers.get('authorization');
-  if (auth?.startsWith('Bearer ')) {
-    const payload = await verifyToken(auth.slice(7));
-    if (payload?.sub) return payload.sub as string;
-  }
-  const session = await getServerSession(authOptions);
-  return (session?.user as any)?.id || null;
-}
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const userId = await getUserId(req);
-    if (!userId) {
+    const auth = await getAuthUser(req);
+    if (!auth) {
       return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
     }
 
@@ -34,9 +22,7 @@ export async function GET(
     });
     if (!recording) return NextResponse.json({ detail: 'Gravação não encontrada' }, { status: 404 });
 
-    const session = await getServerSession(authOptions);
-    const role = (session?.user as any)?.role;
-    if (recording.camera.userId !== userId && role !== 'ADMIN') {
+    if (recording.camera.userId !== auth.id && auth.role !== 'ADMIN') {
       return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
     }
 

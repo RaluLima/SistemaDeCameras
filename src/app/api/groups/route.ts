@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-
-    const userId = (session.user as any).id;
-    const role = (session.user as any).role;
+    const auth = await getAuthUser(req);
+    if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     let groups;
-    if (role === "ADMIN") {
+    if (auth.role === "ADMIN") {
       groups = await prisma.cameraGroup.findMany({
         include: {
           owner: { select: { id: true, name: true, email: true } },
@@ -25,8 +21,8 @@ export async function GET() {
       groups = await prisma.cameraGroup.findMany({
         where: {
           OR: [
-            { userId },
-            { members: { some: { userId } } },
+            { userId: auth.id },
+            { members: { some: { userId: auth.id } } },
           ],
         },
         include: {
@@ -46,10 +42,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    const auth = await getAuthUser(req);
+    if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const userId = (session.user as any).id;
     const { name, description } = await req.json();
 
     if (!name) {
@@ -60,9 +55,9 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         description,
-        userId,
+        userId: auth.id,
         members: {
-          create: { userId, role: "OWNER" },
+          create: { userId: auth.id, role: "OWNER" },
         },
       },
       include: {

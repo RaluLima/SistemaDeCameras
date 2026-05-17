@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getAuthUser } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 
-export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+export async function GET(req: NextRequest) {
+  const auth = await getAuthUser(req);
+  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   try {
-    const isAdmin = (session.user as any).role === "ADMIN";
-    const userId = (session.user as any).id;
-
     const alerts = await prisma.alert.findMany({
-      where: isAdmin ? undefined : { camera: { userId } },
+      where: auth.role === "ADMIN" ? undefined : { camera: { userId: auth.id } },
       include: { camera: { select: { name: true } } },
       orderBy: { timestamp: "desc" },
       take: 50,
@@ -24,8 +20,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const auth = await getAuthUser(req);
+  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const { cameraId, type, description } = body;

@@ -18,6 +18,8 @@ export default async function EditUserPage({ params }: { params: { id: string } 
     nickname: user.nickname,
     phone: user.phone,
     role: user.role,
+    plan: user.plan,
+    planExpiresAt: user.planExpiresAt,
     mustChangePassword: user.mustChangePassword,
     address: user.address,
   };

@@ -23,10 +23,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 
-    const { name, email, nickname, phone, password, role } = await req.json();
+    const { name, email, nickname, phone, password, role, plan, planExpiresAt } = await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json({ error: "Nome, email e senha obrigatórios" }, { status: 400 });
+    }
+
+    if (plan && plan !== "FREE" && plan !== "PAID") {
+      return NextResponse.json({ error: "Plano inválido" }, { status: 400 });
     }
 
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -51,6 +55,8 @@ export async function POST(req: NextRequest) {
         phone: phone || null,
         password: hashedPassword,
         role: role || "USER",
+        plan: plan || "FREE",
+        planExpiresAt: planExpiresAt ? new Date(planExpiresAt) : null,
         authProvider: "credentials",
         mustChangePassword: true,
       },

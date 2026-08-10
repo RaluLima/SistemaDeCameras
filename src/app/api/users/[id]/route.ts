@@ -8,12 +8,17 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
   }
   const body = await req.json();
-  const { name, email, nickname, phone, role, street, number, complement, neighborhood, city, state, zipCode } = body;
+  const { name, email, nickname, phone, role, plan, planExpiresAt, street, number, complement, neighborhood, city, state, zipCode } = body;
   try {
+    if (plan && plan !== "FREE" && plan !== "PAID") {
+      return NextResponse.json({ message: "Plano inválido" }, { status: 400 });
+    }
     const user = await prisma.user.update({
       where: { id: params.id },
       data: {
         name, email, nickname, phone, role,
+        ...(plan !== undefined && { plan }),
+        ...(planExpiresAt !== undefined && { planExpiresAt: planExpiresAt ? new Date(planExpiresAt) : null }),
         address: {
           upsert: {
             create: { street, number, complement, neighborhood, city, state, zipCode },

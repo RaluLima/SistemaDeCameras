@@ -33,6 +33,9 @@ export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?:
           <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
             {typeLabels[camera.type] || camera.type}
           </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400 truncate ml-2">
+            {camera.retentionDays ? `${camera.retentionDays} dias de retenção` : ""}
+          </span>
           {isAdmin && (
             <span className="text-xs text-gray-500 dark:text-gray-400 truncate ml-2">
               {camera.user?.name || "N/A"}

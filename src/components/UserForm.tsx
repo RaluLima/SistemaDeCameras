@@ -17,6 +17,8 @@ export function UserForm({ user }: { user: any }) {
       nickname: formData.get("nickname"),
       phone: formData.get("phone"),
       role: formData.get("role"),
+      plan: formData.get("plan"),
+      planExpiresAt: formData.get("planExpiresAt") || null,
       street: formData.get("street"),
       number: formData.get("number"),
       complement: formData.get("complement"),
@@ -54,6 +56,8 @@ export function UserForm({ user }: { user: any }) {
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefone</label><input name="phone" defaultValue={user.phone || ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Apelido</label><input name="nickname" defaultValue={user.nickname || ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Tipo</label><select name="role" defaultValue={user.role} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm"><option value="USER">Usuário</option><option value="ADMIN">Administrador</option></select></div>
+        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Plano</label><select name="plan" defaultValue={user.plan || "FREE"} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm"><option value="FREE">Gratuito</option><option value="PAID">Pagante</option></select></div>
+        <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Expiração do plano (opcional)</label><input type="date" name="planExpiresAt" defaultValue={user.planExpiresAt ? String(user.planExpiresAt).slice(0, 10) : ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rua</label><input name="street" defaultValue={user.address?.street || ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Número</label><input name="number" defaultValue={user.address?.number || ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>
         <div><label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Complemento</label><input name="complement" defaultValue={user.address?.complement || ""} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 shadow-sm" /></div>

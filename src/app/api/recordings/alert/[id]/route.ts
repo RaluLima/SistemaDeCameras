@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth-helpers';
+import { retentionCutoff } from '@/lib/plan';
 import prisma from '@/lib/prisma';
 
 export async function GET(
@@ -16,7 +17,7 @@ export async function GET(
 
     const alert = await prisma.alert.findUnique({
       where: { id },
-      include: { camera: { select: { userId: true } } },
+      include: { camera: { select: { userId: true, retentionDays: true } } },
     });
     if (!alert) return NextResponse.json({ detail: 'Alerta não encontrado' }, { status: 404 });
 
@@ -24,8 +25,9 @@ export async function GET(
       return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
     }
 
+    const cutoff = retentionCutoff(alert.camera.retentionDays);
     const recordings = await prisma.recording.findMany({
-      where: { alertId: id },
+      where: { alertId: id, createdAt: { gte: cutoff } },
       orderBy: { createdAt: 'desc' },
     });
 

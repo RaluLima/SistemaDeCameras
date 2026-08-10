@@ -21,6 +21,8 @@ model User {
   mustChangePassword Boolean @default(false)
   authProvider    String   @default("credentials")
   providerId      String?
+  plan            Plan     @default(FREE)
+  planExpiresAt   DateTime?
   address         Address?
   cameras         Camera[]
   ownedGroups     CameraGroup[] @relation("GroupOwner")
@@ -50,6 +52,7 @@ model Camera {
   streamUrl   String?
   type        CameraType  @default(IP)   // novo
   status      Status      @default(INACTIVE)
+  retentionDays Int       @default(30)
   userId      String
   user        User        @relation(fields: [userId], references: [id])
   groupId     String?                     // novo: opcional, referência ao grupo
@@ -97,6 +100,11 @@ model GroupMember {
 enum Role {
   ADMIN
   USER
+}
+
+enum Plan {
+  FREE
+  PAID
 }
 
 enum Status {

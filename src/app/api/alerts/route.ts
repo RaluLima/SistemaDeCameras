@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { hasAIAccess } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -29,8 +30,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
   }
   try {
-    const camera = await prisma.camera.findUnique({ where: { id: cameraId } });
+    const camera = await prisma.camera.findUnique({
+      where: { id: cameraId },
+      include: { user: { select: { plan: true, planExpiresAt: true } } },
+    });
     if (!camera) return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
+
+    if (auth.role !== "ADMIN" && !hasAIAccess(camera.user)) {
+      return NextResponse.json(
+        { error: "Monitoramento com IA disponível apenas para planos pagantes" },
+        { status: 403 }
+      );
+    }
 
     const alert = await prisma.alert.create({
       data: {

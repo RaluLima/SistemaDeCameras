@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { Pose, POSE_CONNECTIONS } from "@mediapipe/pose";
 import { drawConnectors, drawLandmarks } from "@mediapipe/drawing_utils";
 import { Camera } from "@mediapipe/camera_utils";
+import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 
 const FALL_COOLDOWN = 5000;
@@ -25,6 +26,9 @@ interface AlertEntry {
 }
 
 export function FallDetection() {
+  const { data: session } = useSession();
+  const sessionUser = (session?.user as any) || {};
+  const isPaying = sessionUser.role === "ADMIN" || sessionUser.plan === "PAID";
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [active, setActive] = useState(false);
@@ -103,6 +107,7 @@ export function FallDetection() {
   const AI_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";
 
   const sendFrameToAI = useCallback(async (video: HTMLVideoElement) => {
+    if (!isPaying) return;
     try {
       const offscreen = document.createElement("canvas");
       offscreen.width = 320;
@@ -117,7 +122,7 @@ export function FallDetection() {
       form.append("camera_id", "local-webcam");
       await fetch(`${AI_URL}/detect-frame`, { method: "POST", body: form });
     } catch {}
-  }, [AI_URL]);
+  }, [AI_URL, isPaying]);
 
   const sendAlert = useCallback(async () => {
     playAlert();
@@ -243,6 +248,13 @@ export function FallDetection() {
 
   return (
     <div>
+      {!isPaying && (
+        <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            🔒 O processamento com IA no servidor é exclusivo do plano Pagante. A detecção local (webcam) continua disponível para demonstração.
+          </p>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-3">
           <span className={`w-3 h-3 rounded-full ${active ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />

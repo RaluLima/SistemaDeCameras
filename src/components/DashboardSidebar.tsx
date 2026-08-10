@@ -24,6 +24,8 @@ export function DashboardSidebar() {
   const { data: session } = useSession();
   const { theme, toggle } = useTheme();
   const role = (session?.user as any)?.role;
+  const plan = (session?.user as any)?.plan;
+  const isPaying = role === "ADMIN" || plan === "PAID";
   const links = role === "ADMIN" ? adminLinks : userLinks;
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -41,7 +43,9 @@ export function DashboardSidebar() {
           </div>
           <div>
             <div className="text-sm font-semibold text-white">Camera Monitor</div>
-            <div className="text-xs text-gray-400">{role === "ADMIN" ? "Administrador" : "Usuário"}</div>
+            <div className="text-xs text-gray-400">
+              {role === "ADMIN" ? "Administrador" : isPaying ? "Usuário · Plano Pagante" : "Usuário · Plano Gratuito"}
+            </div>
           </div>
         </div>
 

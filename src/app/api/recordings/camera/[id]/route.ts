@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth-helpers';
+import { retentionCutoff } from '@/lib/plan';
 import prisma from '@/lib/prisma';
 
 export async function GET(
@@ -16,15 +17,20 @@ export async function GET(
     const { searchParams } = new URL(req.url);
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
 
-    const camera = await prisma.camera.findUnique({ where: { id }, select: { userId: true } });
+    const camera = await prisma.camera.findUnique({ where: { id }, select: { userId: true, retentionDays: true } });
     if (!camera) return NextResponse.json({ detail: 'Câmera não encontrada' }, { status: 404 });
 
     if (camera.userId !== auth.id && auth.role !== 'ADMIN') {
       return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
     }
 
+    const cutoff = retentionCutoff(camera.retentionDays);
+    await prisma.recording.deleteMany({
+      where: { cameraId: id, createdAt: { lt: cutoff } },
+    });
+
     const recordings = await prisma.recording.findMany({
-      where: { cameraId: id },
+      where: { cameraId: id, createdAt: { gte: cutoff } },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

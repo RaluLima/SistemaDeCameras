@@ -47,6 +47,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          plan: user.plan,
+          planExpiresAt: user.planExpiresAt,
           mustChangePassword: user.mustChangePassword,
         };
       },
@@ -73,6 +75,8 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          plan: user.plan,
+          planExpiresAt: user.planExpiresAt,
         };
       },
     }),
@@ -93,6 +97,8 @@ export const authOptions: NextAuthOptions = {
           });
           user.id = existingUser.id;
           (user as any).role = existingUser.role;
+          (user as any).plan = existingUser.plan;
+          (user as any).planExpiresAt = existingUser.planExpiresAt;
           return true;
         }
         const newUser = await prisma.user.create({
@@ -106,6 +112,8 @@ export const authOptions: NextAuthOptions = {
         });
         user.id = newUser.id;
         (user as any).role = newUser.role;
+        (user as any).plan = newUser.plan;
+        (user as any).planExpiresAt = newUser.planExpiresAt;
       }
       return true;
     },
@@ -113,6 +121,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = (user as any).role || "USER";
         token.id = user.id;
+        token.plan = (user as any).plan || "FREE";
+        token.planExpiresAt = (user as any).planExpiresAt || null;
         token.mustChangePassword = (user as any).mustChangePassword || false;
       }
       if (trigger === "update" && triggerSession) {
@@ -124,6 +134,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).role = token.role;
         (session.user as any).id = token.id;
+        (session.user as any).plan = token.plan;
+        (session.user as any).planExpiresAt = token.planExpiresAt;
         (session.user as any).mustChangePassword = token.mustChangePassword;
       }
       return session;

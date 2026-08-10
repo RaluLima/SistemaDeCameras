@@ -10,6 +10,7 @@ interface User {
   email: string;
   phone: string | null;
   role: string;
+  plan: string;
   mustChangePassword: boolean;
 }
 
@@ -49,6 +50,7 @@ export default function AdminUsersPage() {
       phone: formData.get("phone"),
       password: formData.get("password"),
       role: formData.get("role"),
+      plan: formData.get("plan") || "FREE",
     };
     try {
       const res = await fetch("/api/users", {
@@ -129,6 +131,11 @@ export default function AdminUsersPage() {
               <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 text-purple-800" : "bg-green-100 text-green-800"}`}>
                 {user.role}
               </span>
+              {user.plan === "PAID" && (
+                <span className="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                  Pagante
+                </span>
+              )}
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Tel: {user.phone || "-"}</p>
             <div className="flex gap-3 text-sm border-t border-gray-200 dark:border-gray-700 pt-3">
@@ -165,6 +172,11 @@ export default function AdminUsersPage() {
                   <span className={`px-2 py-1 text-xs rounded-full ${user.role === "ADMIN" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300" : "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"}`}>
                     {user.role}
                   </span>
+                  {user.plan === "PAID" && (
+                    <span className="ml-1 px-2 py-1 text-xs rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                      Pagante
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap space-x-2">
                   <Link href={`/admin/users/${user.id}`} className="text-blue-600 hover:underline text-sm">Editar</Link>
@@ -207,6 +219,13 @@ export default function AdminUsersPage() {
                 <select name="role" className="input-field">
                   <option value="USER">Usuário</option>
                   <option value="ADMIN">Administrador</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Plano</label>
+                <select name="plan" defaultValue="FREE" className="input-field">
+                  <option value="FREE">Gratuito</option>
+                  <option value="PAID">Pagante</option>
                 </select>
               </div>
               <div className="flex gap-2 justify-end">

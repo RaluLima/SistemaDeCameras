@@ -11,7 +11,7 @@ async function getUserFromRequest(req: NextRequest) {
     if (payload?.sub) {
       return prisma.user.findUnique({
         where: { id: payload.sub as string },
-        select: { id: true, email: true, name: true, nickname: true, role: true, phone: true, mustChangePassword: true },
+        select: { id: true, email: true, name: true, nickname: true, role: true, plan: true, planExpiresAt: true, phone: true, mustChangePassword: true },
       });
     }
   }
@@ -21,7 +21,7 @@ async function getUserFromRequest(req: NextRequest) {
     const id = (session.user as any).id;
     return prisma.user.findUnique({
       where: { id },
-      select: { id: true, email: true, name: true, nickname: true, role: true, phone: true, mustChangePassword: true },
+      select: { id: true, email: true, name: true, nickname: true, role: true, plan: true, planExpiresAt: true, phone: true, mustChangePassword: true },
     });
   }
 

@@ -11,14 +11,17 @@ const cameraTypes = [
   { value: "OTHER", label: "Outro", description: "Outro tipo de câmera" },
 ];
 
+const retentionOptions = [7, 15, 30, 60, 90];
+
 interface FormData {
   name: string;
   type: string;
   streamUrl: string;
   status: string;
+  retentionDays: number;
 }
 
-const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE" };
+const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE", retentionDays: 30 };
 
 export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [cameras, setCameras] = useState<any[]>([]);
@@ -48,7 +51,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   }
 
   function openEdit(cam: any) {
-    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status });
+    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status, retentionDays: cam.retentionDays || 30 });
     setEditingId(cam.id);
     setShowModal(true);
   }
@@ -96,6 +99,21 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
     }
   }
 
+  async function handleCleanup() {
+    if (!confirm("Remover todas as gravações fora do período de retenção de cada câmera?")) return;
+    try {
+      const res = await fetch("/api/recordings/cleanup", { method: "POST" });
+      const json = await res.json();
+      if (res.ok) {
+        toast.success(`${json.deleted} gravação(ões) antiga(s) removida(s)`);
+      } else {
+        toast.error(json.error || "Erro ao limpar gravações");
+      }
+    } catch {
+      toast.error("Erro de conexão");
+    }
+  }
+
   const typeIcon: Record<string, string> = { IP: "🌐", USB: "🔌", WIRELESS: "📡", ANALOG: "📺", OTHER: "📹" };
 
   if (loading) return <div className="text-center py-8 text-gray-500">Carregando câmeras...</div>;
@@ -106,9 +124,16 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
           {isAdmin ? "Todas as Câmeras" : "Minhas Câmeras"}
         </h1>
-        <button onClick={openAdd} className="btn-primary whitespace-nowrap">
-          + Nova Câmera
-        </button>
+        <div className="flex gap-2">
+          {isAdmin && (
+            <button onClick={handleCleanup} className="btn-outline whitespace-nowrap text-sm">
+              🧹 Limpar gravações antigas
+            </button>
+          )}
+          <button onClick={openAdd} className="btn-primary whitespace-nowrap">
+            + Nova Câmera
+          </button>
+        </div>
       </div>
 
       {cameras.length === 0 ? (
@@ -190,6 +215,16 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
                   <option value="INACTIVE">Inativa</option>
                   <option value="ERROR">Erro</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Período de retenção das gravações</label>
+                <select value={form.retentionDays} onChange={(e) => setForm({ ...form, retentionDays: Number(e.target.value) })} className="input-field">
+                  {retentionOptions.map((days) => (
+                    <option key={days} value={days}>{days} dias</option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">As gravações mais antigas que este período são removidas automaticamente.</p>
               </div>
 
               <div className="flex gap-2 justify-end pt-2">

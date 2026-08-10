@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { isRetentionDaysValid } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -10,7 +11,10 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!camera) return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
     if (auth.role !== "ADMIN" && camera.userId !== auth.id)
       return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
-    const { name, type, streamUrl, status, groupId } = await req.json();
+    const { name, type, streamUrl, status, groupId, retentionDays } = await req.json();
+    if (retentionDays !== undefined && !isRetentionDaysValid(retentionDays)) {
+      return NextResponse.json({ error: "Período de retenção inválido" }, { status: 400 });
+    }
     const updated = await prisma.camera.update({
       where: { id: params.id },
       data: {
@@ -19,6 +23,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(streamUrl !== undefined && { streamUrl: streamUrl || null }),
         ...(status !== undefined && { status }),
         ...(groupId !== undefined && { groupId: groupId || null }),
+        ...(retentionDays !== undefined && { retentionDays }),
       },
     });
     return NextResponse.json(updated);

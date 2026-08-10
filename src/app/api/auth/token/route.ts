@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
         nickname: true,
         password: true,
         role: true,
+        plan: true,
+        planExpiresAt: true,
         phone: true,
         mustChangePassword: true,
       },
@@ -62,6 +64,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       name: user.name,
       role: user.role,
+      plan: user.plan,
     });
 
     return NextResponse.json({
@@ -73,6 +76,7 @@ export async function POST(req: NextRequest) {
         name: user.name,
         nickname: user.nickname,
         role: user.role,
+        plan: user.plan,
         phone: user.phone,
         mustChangePassword: user.mustChangePassword,
       },

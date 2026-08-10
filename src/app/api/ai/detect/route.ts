@@ -21,17 +21,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
   }
 
-  const camera = await prisma.camera.findUnique({
-    where: { id: cameraId },
-    select: { id: true, userId: true, streamUrl: true },
-  });
-  if (!camera) {
-    return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
-  }
-  if (auth.role !== "ADMIN" && camera.userId !== auth.id) {
-    return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
-  }
-
   if (auth.role !== "ADMIN") {
     const user = await prisma.user.findUnique({
       where: { id: auth.id },
@@ -46,6 +35,17 @@ export async function POST(req: NextRequest) {
         { status: 403 }
       );
     }
+  }
+
+  const camera = await prisma.camera.findUnique({
+    select: { id: true, userId: true, streamUrl: true },
+    where: { id: cameraId },
+  });
+  if (!camera) {
+    return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
+  }
+  if (auth.role !== "ADMIN" && camera.userId !== auth.id) {
+    return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
   }
 
   const aiUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";

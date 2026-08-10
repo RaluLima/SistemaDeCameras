@@ -33,6 +33,18 @@ export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?:
           <span className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
             {typeLabels[camera.type] || camera.type}
           </span>
+          <span className="flex items-center gap-1 ml-2">
+            {camera.recordingEnabled && (
+              <span className="text-xs bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">
+                📹 Gravando
+              </span>
+            )}
+            {camera.aiMonitoringEnabled && (
+              <span className="text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded">
+                🤖 IA
+              </span>
+            )}
+          </span>
           <span className="text-xs text-gray-500 dark:text-gray-400 truncate ml-2">
             {camera.retentionDays ? `${camera.retentionDays} dias de retenção` : ""}
           </span>

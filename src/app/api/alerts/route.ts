@@ -36,11 +36,19 @@ export async function POST(req: NextRequest) {
     });
     if (!camera) return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
 
-    if (auth.role !== "ADMIN" && !hasAIAccess(camera.user)) {
-      return NextResponse.json(
-        { error: "Monitoramento com IA disponível apenas para planos pagantes" },
-        { status: 403 }
-      );
+    if (auth.role !== "ADMIN") {
+      if (!camera.aiMonitoringEnabled) {
+        return NextResponse.json(
+          { error: "Monitoramento com IA desativado para esta câmera" },
+          { status: 403 }
+        );
+      }
+      if (!hasAIAccess(camera.user)) {
+        return NextResponse.json(
+          { error: "Monitoramento com IA disponível apenas para planos pagantes" },
+          { status: 403 }
+        );
+      }
     }
 
     const alert = await prisma.alert.create({

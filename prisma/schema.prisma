@@ -53,6 +53,8 @@ model Camera {
   type        CameraType  @default(IP)   // novo
   status      Status      @default(INACTIVE)
   retentionDays Int       @default(30)
+  recordingEnabled   Boolean @default(false)
+  aiMonitoringEnabled Boolean @default(false)
   userId      String
   user        User        @relation(fields: [userId], references: [id])
   groupId     String?                     // novo: opcional, referência ao grupo

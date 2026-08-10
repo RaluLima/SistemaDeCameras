@@ -19,9 +19,11 @@ interface FormData {
   streamUrl: string;
   status: string;
   retentionDays: number;
+  recordingEnabled: boolean;
+  aiMonitoringEnabled: boolean;
 }
 
-const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE", retentionDays: 30 };
+const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE", retentionDays: 30, recordingEnabled: false, aiMonitoringEnabled: false };
 
 export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [cameras, setCameras] = useState<any[]>([]);
@@ -30,6 +32,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [userPlan, setUserPlan] = useState<string>("FREE");
 
   const fetchCameras = useCallback(async () => {
     try {
@@ -42,7 +45,13 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
     }
   }, []);
 
-  useEffect(() => { fetchCameras(); }, [fetchCameras]);
+  useEffect(() => {
+    fetchCameras();
+    fetch("/api/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((me) => me?.plan && setUserPlan(me.plan))
+      .catch(() => {});
+  }, [fetchCameras]);
 
   function openAdd() {
     setForm(emptyForm);
@@ -51,7 +60,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   }
 
   function openEdit(cam: any) {
-    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status, retentionDays: cam.retentionDays || 30 });
+    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status, retentionDays: cam.retentionDays || 30, recordingEnabled: cam.recordingEnabled || false, aiMonitoringEnabled: cam.aiMonitoringEnabled || false });
     setEditingId(cam.id);
     setShowModal(true);
   }
@@ -225,6 +234,30 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
                   ))}
                 </select>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">As gravações mais antigas que este período são removidas automaticamente.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Modo de operação</label>
+                <div className="space-y-2">
+                  <label className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${form.recordingEnabled ? "border-green-500 bg-green-50 dark:bg-green-900/20" : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-200"}`}>
+                    <input type="checkbox" checked={form.recordingEnabled} onChange={(e) => setForm({ ...form, recordingEnabled: e.target.checked })} className="mt-1 accent-green-600" />
+                    <div>
+                      <p className="text-sm font-medium">📹 Gravar gravações</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">Captura contínua do stream, mantida por {form.retentionDays} dias. Requer URL de stream válida.</p>
+                    </div>
+                  </label>
+                  <label className={`flex items-start gap-3 p-3 rounded-md border cursor-pointer transition-colors ${form.aiMonitoringEnabled ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20" : isAdmin || userPlan === "PAID" ? "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-dark-200" : "border-gray-200 dark:border-gray-700 opacity-50 cursor-not-allowed"}`}>
+                    <input type="checkbox" checked={form.aiMonitoringEnabled} disabled={!isAdmin && userPlan !== "PAID"} onChange={(e) => setForm({ ...form, aiMonitoringEnabled: e.target.checked })} className="mt-1 accent-blue-600" />
+                    <div>
+                      <p className="text-sm font-medium">🤖 Monitoramento com IA</p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {isAdmin || userPlan === "PAID"
+                          ? "Detecção de quedas e intrusões, com alertas em tempo real."
+                          : "Disponível apenas para planos pagantes. Atualize seu plano para ativar."}
+                      </p>
+                    </div>
+                  </label>
+                </div>
               </div>
 
               <div className="flex gap-2 justify-end pt-2">

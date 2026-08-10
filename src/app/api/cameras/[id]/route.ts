@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
-import { isRetentionDaysValid } from "@/lib/plan";
+import { hasAIAccess, isRetentionDaysValid } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
 export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
@@ -11,9 +11,15 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     if (!camera) return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
     if (auth.role !== "ADMIN" && camera.userId !== auth.id)
       return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
-    const { name, type, streamUrl, status, groupId, retentionDays } = await req.json();
+    const { name, type, streamUrl, status, groupId, retentionDays, recordingEnabled, aiMonitoringEnabled } = await req.json();
     if (retentionDays !== undefined && !isRetentionDaysValid(retentionDays)) {
       return NextResponse.json({ error: "Período de retenção inválido" }, { status: 400 });
+    }
+    if (aiMonitoringEnabled === true && camera.aiMonitoringEnabled !== true) {
+      const owner = await prisma.user.findUnique({ where: { id: camera.userId }, select: { plan: true, planExpiresAt: true } });
+      if (!owner || (auth.role !== "ADMIN" && !hasAIAccess(owner))) {
+        return NextResponse.json({ error: "Monitoramento com IA disponível apenas para planos pagantes" }, { status: 403 });
+      }
     }
     const updated = await prisma.camera.update({
       where: { id: params.id },
@@ -24,6 +30,8 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
         ...(status !== undefined && { status }),
         ...(groupId !== undefined && { groupId: groupId || null }),
         ...(retentionDays !== undefined && { retentionDays }),
+        ...(recordingEnabled !== undefined && { recordingEnabled }),
+        ...(aiMonitoringEnabled !== undefined && { aiMonitoringEnabled }),
       },
     });
     return NextResponse.json(updated);

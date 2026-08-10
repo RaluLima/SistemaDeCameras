@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   }
 
   const camera = await prisma.camera.findUnique({
-    select: { id: true, userId: true, streamUrl: true },
+    select: { id: true, userId: true, streamUrl: true, aiMonitoringEnabled: true },
     where: { id: cameraId },
   });
   if (!camera) {
@@ -46,6 +46,12 @@ export async function POST(req: NextRequest) {
   }
   if (auth.role !== "ADMIN" && camera.userId !== auth.id) {
     return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
+  }
+  if (auth.role !== "ADMIN" && !camera.aiMonitoringEnabled) {
+    return NextResponse.json(
+      { error: "Monitoramento com IA desativado para esta câmera" },
+      { status: 403 }
+    );
   }
 
   const aiUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";

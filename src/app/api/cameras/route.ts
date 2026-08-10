@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
-import { isRetentionDaysValid } from "@/lib/plan";
+import { hasAIAccess, isRetentionDaysValid } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -20,10 +20,16 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    const { name, type, streamUrl, status, groupId, retentionDays } = await req.json();
+    const { name, type, streamUrl, status, groupId, retentionDays, recordingEnabled, aiMonitoringEnabled } = await req.json();
     if (!name) return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
     if (retentionDays !== undefined && !isRetentionDaysValid(retentionDays)) {
       return NextResponse.json({ error: "Período de retenção inválido" }, { status: 400 });
+    }
+    if (aiMonitoringEnabled) {
+      const user = await prisma.user.findUnique({ where: { id: auth.id }, select: { plan: true, planExpiresAt: true } });
+      if (!user || (auth.role !== "ADMIN" && !hasAIAccess(user))) {
+        return NextResponse.json({ error: "Monitoramento com IA disponível apenas para planos pagantes" }, { status: 403 });
+      }
     }
     const camera = await prisma.camera.create({
       data: {
@@ -32,6 +38,8 @@ export async function POST(req: NextRequest) {
         streamUrl: streamUrl || null,
         status: status || "ACTIVE",
         retentionDays: retentionDays ?? 30,
+        recordingEnabled: recordingEnabled ?? false,
+        aiMonitoringEnabled: aiMonitoringEnabled ?? false,
         userId: auth.id,
         groupId: groupId || null,
       },

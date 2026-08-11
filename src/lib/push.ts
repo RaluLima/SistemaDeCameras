@@ -34,11 +34,20 @@ export async function sendPushToUser(userId: string, message: PushMessage) {
       return { sent: 0, errors: [`Expo push HTTP ${resp.status}`] };
     }
 
-    const results = (await resp.json()) as {
-      status: string;
-      message?: string;
-      details?: { error?: string };
-    }[];
+    const body = (await resp.json()) as
+      | {
+          data?: {
+            status: string;
+            message?: string;
+            details?: { error?: string };
+          }[];
+        }
+      | {
+          status: string;
+          message?: string;
+          details?: { error?: string };
+        }[];
+    const results = Array.isArray(body) ? body : body.data ?? [];
 
     let sent = 0;
     const errors: string[] = [];

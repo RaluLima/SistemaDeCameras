@@ -10,12 +10,14 @@ const adminLinks = [
   { href: "/admin/users", label: "Usuários", icon: "👥" },
   { href: "/admin/groups", label: "Grupos", icon: "📁" },
   { href: "/admin/cameras", label: "Câmeras", icon: "📷" },
+  { href: "/admin/recordings", label: "Gravações", icon: "🎬" },
   { href: "/admin/ai-monitoring", label: "Monitoramento IA", icon: "🤖" },
   { href: "/admin/fall-detection", label: "Detecção de Quedas", icon: "⚠️" },
 ];
 
 const userLinks = [
   { href: "/user/cameras", label: "Minhas Câmeras", icon: "📷" },
+  { href: "/user/recordings", label: "Minhas Gravações", icon: "🎬" },
   { href: "/user/groups", label: "Meus Grupos", icon: "📁" },
 ];
 

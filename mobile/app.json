@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "CameraMobile",
+    "slug": "camera-mobile",
+    "displayName": "Sistema de Câmeras",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "android": {
+      "package": "com.cameramobile",
+      "versionCode": 1,
+      "permissions": ["POST_NOTIFICATIONS", "VIBRATE"]
+    },
+    "ios": {
+      "bundleIdentifier": "com.cameramobile",
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "color": "#2563eb",
+          "defaultChannel": "default"
+        }
+      ]
+    ]
+  }
+}

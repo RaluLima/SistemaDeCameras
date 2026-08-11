@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
 
-export function hasRecorderAccess(req: NextRequest): boolean {
-  const key = process.env.RECORDING_SERVICE_KEY;
+export function hasServiceAccess(req: NextRequest, envKey: string): boolean {
+  const key = process.env[envKey];
   if (!key) return false;
-  const provided = req.headers.get('x-recorder-key');
+  const provided = req.headers.get('x-service-key');
   return provided === key;
+}
+
+export function hasRecorderAccess(req: NextRequest): boolean {
+  return hasServiceAccess(req, 'RECORDING_SERVICE_KEY');
 }

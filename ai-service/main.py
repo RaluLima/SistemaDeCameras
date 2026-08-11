@@ -20,6 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger("ai-service")
 
 NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
+AI_SERVICE_KEY = os.getenv("AI_SERVICE_KEY", "")
 MAX_IMAGE_SIZE = int(os.getenv("MAX_IMAGE_SIZE", "5")) * 1024 * 1024
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
 DETECTOR_TTL = int(os.getenv("DETECTOR_TTL", "300"))
@@ -89,11 +90,13 @@ def _validate_image(contents: bytes) -> np.ndarray:
 
 
 async def _send_alert(camera_id: str, description: str, retries: int = 2):
+    headers = {"x-service-key": AI_SERVICE_KEY} if AI_SERVICE_KEY else {}
     for attempt in range(retries + 1):
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 resp = await client.post(
                     f"{NEXTJS_URL}/api/alerts",
+                    headers=headers,
                     json={
                         "cameraId": camera_id,
                         "type": "FALL_DETECTED",

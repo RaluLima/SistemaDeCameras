@@ -12,6 +12,7 @@ const adminLinks = [
   { href: "/admin/cameras", label: "Câmeras", icon: "📷" },
   { href: "/admin/live", label: "Ao Vivo", icon: "📡" },
   { href: "/admin/recordings", label: "Gravações", icon: "🎬" },
+  { href: "/admin/alerts", label: "Alertas", icon: "🔔" },
   { href: "/admin/ai-monitoring", label: "Monitoramento IA", icon: "🤖" },
   { href: "/admin/fall-detection", label: "Detecção de Quedas", icon: "⚠️" },
 ];
@@ -20,6 +21,7 @@ const userLinks = [
   { href: "/user/cameras", label: "Minhas Câmeras", icon: "📷" },
   { href: "/user/live", label: "Ao Vivo", icon: "📡" },
   { href: "/user/recordings", label: "Minhas Gravações", icon: "🎬" },
+  { href: "/user/alerts", label: "Meus Alertas", icon: "🔔" },
   { href: "/user/groups", label: "Meus Grupos", icon: "📁" },
 ];
 

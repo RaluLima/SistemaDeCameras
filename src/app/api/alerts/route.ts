@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { hasAIAccess } from "@/lib/plan";
+import { hasServiceAccess } from "@/lib/service-auth";
+import { alertPushMessage, sendPushToUser } from "@/lib/push";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -22,7 +24,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const auth = await getAuthUser(req);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  const isService = hasServiceAccess(req, "AI_SERVICE_KEY");
+  if (!auth && !isService) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
   const body = await req.json();
   const { cameraId, type, description } = body;
@@ -36,7 +39,8 @@ export async function POST(req: NextRequest) {
     });
     if (!camera) return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
 
-    if (auth.role !== "ADMIN") {
+    const privileged = isService || auth?.role === "ADMIN";
+    if (!privileged) {
       if (!camera.aiMonitoringEnabled) {
         return NextResponse.json(
           { error: "Monitoramento com IA desativado para esta câmera" },
@@ -51,13 +55,26 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const alertType = type || "SUSPICIOUS_MOVEMENT";
     const alert = await prisma.alert.create({
       data: {
         cameraId,
-        type: type || "SUSPICIOUS_MOVEMENT",
+        type: alertType,
         description: description || "Movimento suspeito detectado",
       },
     });
+
+    void sendPushToUser(
+      camera.userId,
+      alertPushMessage({
+        type: alertType,
+        description: alert.description,
+        alertId: alert.id,
+        cameraId: camera.id,
+        cameraName: camera.name,
+      })
+    ).catch((err) => console.error("Push on alert error:", err));
+
     return NextResponse.json(alert);
   } catch {
     return NextResponse.json({ error: "Erro ao criar alerta" }, { status: 500 });

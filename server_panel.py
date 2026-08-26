@@ -190,7 +190,7 @@ class ServerPanel:
                     subprocess.run([pg_ctl, "start", "-D", self.pg_data, "-l", os.path.join(self.pg_data, "startup.log"), "-w"], capture_output=True, timeout=30, startupinfo=si, creationflags=NO_WINDOW)
                     time.sleep(4)
                 elif key == "nextjs":
-                    subprocess.Popen([self.node_exe, "start", "-p", "3000", "-H", "0.0.0.0"], cwd=self.project_dir, creationflags=NO_WINDOW, startupinfo=si, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    subprocess.Popen(["node", "server.js"], cwd=self.project_dir, creationflags=NO_WINDOW, startupinfo=si, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     time.sleep(8)
                 elif key == "ai-service":
                     env = os.environ.copy()

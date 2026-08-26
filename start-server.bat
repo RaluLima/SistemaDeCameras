@@ -24,7 +24,7 @@ echo [2/3] Verificando Next.js...
 netstat -ano | findstr ":3000" | findstr "LISTENING" >nul 2>&1
 if %errorlevel% neq 0 (
     echo       Next.js parado. Iniciando...
-    start /B powershell -NoProfile -Command "Set-Location 'F:\SistemaDeCameras-main'; node node_modules\next\dist\bin\next start -p 3000 -H 0.0.0.0"
+    start /B powershell -NoProfile -Command "Set-Location 'F:\SistemaDeCameras-main'; node server.js"
     timeout /t 8 /nobreak >nul
 )
 echo       Next.js OK

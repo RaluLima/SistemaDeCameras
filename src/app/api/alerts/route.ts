@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import { hasAIAccess } from "@/lib/plan";
 import { hasServiceAccess } from "@/lib/service-auth";
 import { alertPushMessage, sendPushToUser } from "@/lib/push";
+import { emitAlert } from "@/lib/socket-server";
 import prisma from "@/lib/prisma";
 
 const VALID_ALERT_TYPES = ["SUSPICIOUS_MOVEMENT", "INTRUSION", "CONNECTION_LOST", "FALL_DETECTED"];
@@ -81,6 +82,15 @@ export async function POST(req: NextRequest) {
         cameraName: camera.name,
       })
     ).catch((err) => console.error("Push on alert error:", err));
+
+    emitAlert({
+      id: alert.id,
+      cameraId: camera.id,
+      cameraName: camera.name,
+      type: alertType,
+      description: alert.description,
+      timestamp: alert.timestamp.toISOString(),
+    });
 
     return NextResponse.json(alert);
   } catch {

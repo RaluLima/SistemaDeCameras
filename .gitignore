@@ -6,5 +6,18 @@ npm run dev.txt
 *.log
 .DS_Store
 dist/
+__pycache__/
+*.pyc
 # nextjs-additions
 tsconfig.tsbuildinfo
+
+# Binarios / media
+*.exe
+*.mp4
+mediamtx.yml
+cloudflared.exe
+mediamtx.exe
+test-video.mp4
+tunnel-err.log
+opencode.json
+tools/

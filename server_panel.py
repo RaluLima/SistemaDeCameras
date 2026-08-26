@@ -33,6 +33,7 @@ class ServerPanel:
         self.refresh_interval = 5
         self.tunnel_url = None
         self.services = {
+            "redis": {"name": "Redis", "port": 6379, "status": "stopped", "pid": None},
             "postgresql": {"name": "PostgreSQL", "port": 5432, "status": "stopped", "pid": None},
             "nextjs": {"name": "Next.js", "port": 3000, "status": "stopped", "pid": None},
             "ai-service": {"name": "AI Service", "port": 8000, "status": "stopped", "pid": None},
@@ -185,7 +186,10 @@ class ServerPanel:
         def start():
             try:
                 si = hide_console()
-                if key == "postgresql":
+                if key == "redis":
+                    subprocess.Popen([r"C:\Program Files\Redis\redis-server.exe", r"C:\Program Files\Redis\redis.windows.conf"], creationflags=NO_WINDOW, startupinfo=si, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                    time.sleep(3)
+                elif key == "postgresql":
                     pg_ctl = os.path.join(self.pg_bin, "pg_ctl.exe")
                     subprocess.run([pg_ctl, "start", "-D", self.pg_data, "-l", os.path.join(self.pg_data, "startup.log"), "-w"], capture_output=True, timeout=30, startupinfo=si, creationflags=NO_WINDOW)
                     time.sleep(4)
@@ -228,7 +232,9 @@ class ServerPanel:
             try:
                 svc = self.services[key]
                 si = hide_console()
-                if key == "postgresql":
+                if key == "redis":
+                    subprocess.run([r"C:\Program Files\Redis\redis-cli.exe", "shutdown"], capture_output=True, timeout=10, startupinfo=si, creationflags=NO_WINDOW)
+                elif key == "postgresql":
                     pg_ctl = os.path.join(self.pg_bin, "pg_ctl.exe")
                     subprocess.run([pg_ctl, "stop", "-D", self.pg_data, "-m", "fast"], capture_output=True, timeout=30, startupinfo=si, creationflags=NO_WINDOW)
                 elif svc["pid"]:
@@ -257,7 +263,7 @@ class ServerPanel:
         self.root.after(0, lambda: self.status_bar.config(text="Iniciando todos os servicos..."))
         self.start_all_btn.config(state=tk.DISABLED)
         def go():
-            for key in ["postgresql", "nextjs", "ai-service", "cloudflare"]:
+            for key in ["redis", "postgresql", "nextjs", "ai-service", "cloudflare"]:
                 if self.services[key]["status"] != "running":
                     self.start_service(key)
                     time.sleep(2)
@@ -269,7 +275,7 @@ class ServerPanel:
         self.root.after(0, lambda: self.status_bar.config(text="Parando todos os servicos..."))
         self.stop_all_btn.config(state=tk.DISABLED)
         def go():
-            for key in ["cloudflare", "ai-service", "nextjs", "postgresql"]:
+            for key in ["cloudflare", "ai-service", "nextjs", "postgresql", "redis"]:
                 if self.services[key]["status"] == "running":
                     self.stop_service(key)
                     time.sleep(2)

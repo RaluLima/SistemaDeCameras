@@ -9,8 +9,18 @@ echo   Camera Monitor - Iniciando Servidores
 echo ========================================
 echo.
 
+:: Verificar Redis
+echo [1/4] Verificando Redis...
+netstat -ano | findstr ":6379" | findstr "LISTENING" >nul 2>&1
+if %errorlevel% neq 0 (
+    echo       Redis parado. Iniciando...
+    start /B "C:\Program Files\Redis\redis-server.exe" "C:\Program Files\Redis\redis.windows.conf"
+    timeout /t 2 /nobreak >nul
+)
+echo       Redis OK
+
 :: Verificar PostgreSQL
-echo [1/3] Verificando PostgreSQL...
+echo [2/4] Verificando PostgreSQL...
 "C:\Program Files\PostgreSQL\16\bin\pg_ctl" status -D "C:\Program Files\PostgreSQL\16\data" >nul 2>&1
 if %errorlevel% neq 0 (
     echo       PostgreSQL parado. Iniciando...
@@ -20,7 +30,7 @@ if %errorlevel% neq 0 (
 echo       PostgreSQL OK
 
 :: Verificar Next.js
-echo [2/3] Verificando Next.js...
+echo [3/4] Verificando Next.js...
 netstat -ano | findstr ":3000" | findstr "LISTENING" >nul 2>&1
 if %errorlevel% neq 0 (
     echo       Next.js parado. Iniciando...
@@ -30,7 +40,7 @@ if %errorlevel% neq 0 (
 echo       Next.js OK
 
 :: Verificar Cloudflare Tunnel
-echo [3/3] Verificando Cloudflare Tunnel...
+echo [4/4] Verificando Cloudflare Tunnel...
 netstat -ano | findstr ":20241" | findstr "LISTENING" >nul 2>&1
 if %errorlevel% neq 0 (
     echo       Tunnel parado. Iniciando...

@@ -22,8 +22,18 @@ app.add_middleware(
 
 NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
 AI_SECRET = os.getenv("AI_SECRET", "camview-ai-secret-2024")
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 monitors: Dict[str, FallDetector] = {}
+
+try:
+    import redis as redis_lib
+    redis_client = redis_lib.from_url(REDIS_URL, decode_responses=True, protocol=2)
+    redis_client.ping()
+    print(f"[AI] Redis conectado: {REDIS_URL}")
+except Exception as e:
+    redis_client = None
+    print(f"[AI] Redis indisponivel: {e}")
 
 class StartMonitorRequest(BaseModel):
     camera_id: str
@@ -46,6 +56,17 @@ def send_alert_sync(camera_id: str, alert_count: int):
             )
             if resp.status_code in (200, 201):
                 print(f"[AI] Alerta enviado com sucesso para camera {camera_id}")
+                if redis_client:
+                    try:
+                        import json
+                        redis_client.publish("alerts", json.dumps({
+                            "cameraId": camera_id,
+                            "type": "FALL_DETECTED",
+                            "description": f"Queda detectada pelo servidor de IA (alerta #{alert_count})",
+                        }))
+                        print(f"[AI] Alerta publicado no Redis")
+                    except Exception as e:
+                        print(f"[AI] Erro ao publicar no Redis: {e}")
             else:
                 print(f"[AI] Erro ao enviar alerta: {resp.status_code} - {resp.text}")
     except Exception as e:

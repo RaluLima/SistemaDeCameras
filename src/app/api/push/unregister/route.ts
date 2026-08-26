@@ -6,12 +6,14 @@ export async function DELETE(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const { token } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const token = searchParams.get('token') || '';
+
     if (!token) {
-      return NextResponse.json({ detail: 'Token obrigatório' }, { status: 422 });
+      return NextResponse.json({ error: 'Token obrigatório' }, { status: 422 });
     }
 
     await prisma.pushToken.deleteMany({ where: { token, userId: auth.id } });
@@ -19,6 +21,6 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ status: 'ok' });
   } catch (err) {
     console.error('Push unregister error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

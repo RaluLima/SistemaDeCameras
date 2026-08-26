@@ -10,30 +10,28 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
 
-    const alert = await prisma.alert.findUnique({
+    const recording = await prisma.recording.findUnique({
       where: { id },
       include: { camera: { select: { userId: true, retentionDays: true } } },
     });
-    if (!alert) return NextResponse.json({ detail: 'Alerta não encontrado' }, { status: 404 });
+    if (!recording) return NextResponse.json({ error: 'Gravação não encontrada' }, { status: 404 });
 
-    if (alert.camera.userId !== auth.id && auth.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+    if (recording.camera.userId !== auth.id && auth.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const cutoff = retentionCutoff(alert.camera.retentionDays);
-    const recordings = await prisma.recording.findMany({
-      where: { alertId: id, createdAt: { gte: cutoff } },
-      orderBy: { createdAt: 'desc' },
-    });
+    if (recording.createdAt < retentionCutoff(recording.camera.retentionDays)) {
+      return NextResponse.json({ error: 'Gravação fora do período de retenção' }, { status: 410 });
+    }
 
-    return NextResponse.json(recordings);
+    return NextResponse.json(recording);
   } catch (err) {
-    console.error('Recordings by alert error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    console.error('Recording fetch error:', err);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

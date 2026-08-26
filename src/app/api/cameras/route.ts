@@ -3,6 +3,9 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import { hasAIAccess, isRetentionDaysValid } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
+const VALID_CAMERA_TYPES = ["IP", "USB", "ANALOG", "WIRELESS", "OTHER"];
+const VALID_STATUSES = ["ACTIVE", "INACTIVE", "ERROR"];
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
@@ -20,13 +23,27 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-    const { name, type, streamUrl, status, groupId, retentionDays, recordingEnabled, aiMonitoringEnabled } = await req.json();
+    const { name, type, streamUrl, status, groupId, retentionDays, recordingEnabled, aiMonitoringEnabled, userId } = await req.json();
     if (!name) return NextResponse.json({ error: "Nome é obrigatório" }, { status: 400 });
+    if (type && !VALID_CAMERA_TYPES.includes(type)) {
+      return NextResponse.json({ error: "Tipo de câmera inválido" }, { status: 400 });
+    }
+    if (status && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: "Status inválido" }, { status: 400 });
+    }
     if (retentionDays !== undefined && !isRetentionDaysValid(retentionDays)) {
       return NextResponse.json({ error: "Período de retenção inválido" }, { status: 400 });
     }
+    const ownerUserId = auth.role === "ADMIN" && userId ? userId : auth.id;
+    if (userId && auth.role !== "ADMIN") {
+      return NextResponse.json({ error: "Apenas administradores podem atribuir câmeras a outros usuários" }, { status: 403 });
+    }
+    if (userId) {
+      const targetUser = await prisma.user.findUnique({ where: { id: userId }, select: { id: true } });
+      if (!targetUser) return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
     if (aiMonitoringEnabled) {
-      const user = await prisma.user.findUnique({ where: { id: auth.id }, select: { plan: true, planExpiresAt: true } });
+      const user = await prisma.user.findUnique({ where: { id: ownerUserId }, select: { plan: true, planExpiresAt: true } });
       if (!user || (auth.role !== "ADMIN" && !hasAIAccess(user))) {
         return NextResponse.json({ error: "Monitoramento com IA disponível apenas para planos pagantes" }, { status: 403 });
       }
@@ -40,7 +57,7 @@ export async function POST(req: NextRequest) {
         retentionDays: retentionDays ?? 30,
         recordingEnabled: recordingEnabled ?? false,
         aiMonitoringEnabled: aiMonitoringEnabled ?? false,
-        userId: auth.id,
+        userId: ownerUserId,
         groupId: groupId || null,
       },
     });

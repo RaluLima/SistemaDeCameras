@@ -10,25 +10,22 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100);
+    const rawLimit = parseInt(searchParams.get('limit') || '20');
+    const limit = isNaN(rawLimit) ? 20 : Math.min(rawLimit, 100);
 
     const camera = await prisma.camera.findUnique({ where: { id }, select: { userId: true, retentionDays: true } });
-    if (!camera) return NextResponse.json({ detail: 'Câmera não encontrada' }, { status: 404 });
+    if (!camera) return NextResponse.json({ error: 'Câmera não encontrada' }, { status: 404 });
 
     if (camera.userId !== auth.id && auth.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const cutoff = retentionCutoff(camera.retentionDays);
-    await prisma.recording.deleteMany({
-      where: { cameraId: id, createdAt: { lt: cutoff } },
-    });
-
     const recordings = await prisma.recording.findMany({
       where: { cameraId: id, createdAt: { gte: cutoff } },
       orderBy: { createdAt: 'desc' },
@@ -38,6 +35,6 @@ export async function GET(
     return NextResponse.json(recordings);
   } catch (err) {
     console.error('Recordings by camera error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

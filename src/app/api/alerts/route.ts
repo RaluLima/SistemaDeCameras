@@ -5,11 +5,13 @@ import { hasServiceAccess } from "@/lib/service-auth";
 import { alertPushMessage, sendPushToUser } from "@/lib/push";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest) {
-  const auth = await getAuthUser(req);
-  if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+const VALID_ALERT_TYPES = ["SUSPICIOUS_MOVEMENT", "INTRUSION", "CONNECTION_LOST", "FALL_DETECTED"];
 
+export async function GET(req: NextRequest) {
   try {
+    const auth = await getAuthUser(req);
+    if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
     const alerts = await prisma.alert.findMany({
       where: auth.role === "ADMIN" ? undefined : { camera: { userId: auth.id } },
       include: { camera: { select: { name: true } } },
@@ -23,16 +25,22 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthUser(req);
-  const isService = hasServiceAccess(req, "AI_SERVICE_KEY");
-  if (!auth && !isService) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-
-  const body = await req.json();
-  const { cameraId, type, description } = body;
-  if (!cameraId) {
-    return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
-  }
   try {
+    const auth = await getAuthUser(req);
+    const isService = hasServiceAccess(req, "AI_SERVICE_KEY");
+    if (!auth && !isService) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+
+    const body = await req.json();
+    const { cameraId, type, description } = body;
+    if (!cameraId) {
+      return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
+    }
+
+    const alertType = type || "SUSPICIOUS_MOVEMENT";
+    if (!VALID_ALERT_TYPES.includes(alertType)) {
+      return NextResponse.json({ error: "Tipo de alerta inválido" }, { status: 400 });
+    }
+
     const camera = await prisma.camera.findUnique({
       where: { id: cameraId },
       include: { user: { select: { plan: true, planExpiresAt: true } } },
@@ -55,7 +63,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const alertType = type || "SUSPICIOUS_MOVEMENT";
     const alert = await prisma.alert.create({
       data: {
         cameraId,

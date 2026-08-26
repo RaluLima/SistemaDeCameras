@@ -9,12 +9,13 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
     const { searchParams } = new URL(req.url);
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 200);
+    const rawLimit = parseInt(searchParams.get('limit') || '50');
+    const limit = isNaN(rawLimit) ? 50 : Math.min(rawLimit, 200);
 
     const camera = await prisma.camera.findUnique({
       where: { id },
@@ -22,11 +23,11 @@ export async function GET(
     });
 
     if (!camera) {
-      return NextResponse.json({ detail: 'Câmera não encontrada' }, { status: 404 });
+      return NextResponse.json({ error: 'Câmera não encontrada' }, { status: 404 });
     }
 
     if (camera.userId !== auth.id && auth.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const alerts = await prisma.alert.findMany({
@@ -38,6 +39,6 @@ export async function GET(
     return NextResponse.json(alerts);
   } catch (err) {
     console.error('Alerts by camera error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

@@ -9,7 +9,7 @@ export async function PATCH(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -21,10 +21,10 @@ export async function PATCH(
       include: { camera: { select: { userId: true } } },
     });
     if (!alert) {
-      return NextResponse.json({ detail: 'Alerta não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Alerta não encontrado' }, { status: 404 });
     }
     if (auth.role !== 'ADMIN' && alert.camera.userId !== auth.id) {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const updated = await prisma.alert.update({
@@ -35,6 +35,6 @@ export async function PATCH(
     return NextResponse.json(updated);
   } catch (err) {
     console.error('Alert update error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

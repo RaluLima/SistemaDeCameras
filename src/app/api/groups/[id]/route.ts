@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const group = await prisma.cameraGroup.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         owner: { select: { id: true, name: true, email: true } },
         members: { include: { user: { select: { id: true, name: true, email: true, phone: true } } } },
@@ -30,14 +31,15 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function PUT(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
     const { name, description } = await req.json();
 
-    const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
+    const group = await prisma.cameraGroup.findUnique({ where: { id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
     if (auth.role !== "ADMIN" && group.userId !== auth.id) {
@@ -45,7 +47,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
     }
 
     const updated = await prisma.cameraGroup.update({
-      where: { id: params.id },
+      where: { id },
       data: { ...(name && { name }), ...(description !== undefined && { description }) },
       include: {
         owner: { select: { id: true, name: true, email: true } },
@@ -59,19 +61,20 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
 
-    const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
+    const group = await prisma.cameraGroup.findUnique({ where: { id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
     if (auth.role !== "ADMIN" && group.userId !== auth.id) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 
-    await prisma.cameraGroup.delete({ where: { id: params.id } });
+    await prisma.cameraGroup.delete({ where: { id } });
     return NextResponse.json({ message: "Grupo removido" });
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });

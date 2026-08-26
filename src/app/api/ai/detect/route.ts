@@ -4,66 +4,73 @@ import { hasAIAccess } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
-  const auth = await getAuthUser(req);
-  if (!auth) {
-    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
-  }
-
-  let body: any;
   try {
-    body = await req.json();
-  } catch {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
-  }
+    const auth = await getAuthUser(req);
+    if (!auth) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
 
-  const { cameraId, streamUrl } = body;
-  if (!cameraId) {
-    return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
-  }
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    }
 
-  if (auth.role !== "ADMIN") {
-    const user = await prisma.user.findUnique({
-      where: { id: auth.id },
-      select: { plan: true, planExpiresAt: true },
+    const { cameraId, streamUrl } = body;
+    if (!cameraId) {
+      return NextResponse.json({ error: "cameraId obrigatório" }, { status: 400 });
+    }
+
+    if (auth.role !== "ADMIN") {
+      const user = await prisma.user.findUnique({
+        where: { id: auth.id },
+        select: { plan: true, planExpiresAt: true },
+      });
+      if (!hasAIAccess(user)) {
+        return NextResponse.json(
+          {
+            error:
+              "Seu plano gratuito não inclui o monitoramento com IA. Ative o plano Pagante para usar este recurso.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    const camera = await prisma.camera.findUnique({
+      select: { id: true, userId: true, streamUrl: true, aiMonitoringEnabled: true },
+      where: { id: cameraId },
     });
-    if (!hasAIAccess(user)) {
+    if (!camera) {
+      return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
+    }
+    if (auth.role !== "ADMIN" && camera.userId !== auth.id) {
+      return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
+    }
+    if (auth.role !== "ADMIN" && !camera.aiMonitoringEnabled) {
       return NextResponse.json(
-        {
-          error:
-            "Seu plano gratuito não inclui o monitoramento com IA. Ative o plano Pagante para usar este recurso.",
-        },
+        { error: "Monitoramento com IA desativado para esta câmera" },
         { status: 403 }
       );
     }
-  }
 
-  const camera = await prisma.camera.findUnique({
-    select: { id: true, userId: true, streamUrl: true, aiMonitoringEnabled: true },
-    where: { id: cameraId },
-  });
-  if (!camera) {
-    return NextResponse.json({ error: "Câmera não encontrada" }, { status: 404 });
-  }
-  if (auth.role !== "ADMIN" && camera.userId !== auth.id) {
-    return NextResponse.json({ error: "Permissão negada" }, { status: 403 });
-  }
-  if (auth.role !== "ADMIN" && !camera.aiMonitoringEnabled) {
-    return NextResponse.json(
-      { error: "Monitoramento com IA desativado para esta câmera" },
-      { status: 403 }
-    );
-  }
+    const aiUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL;
+    if (!aiUrl) {
+      return NextResponse.json(
+        { error: "Serviço de IA não configurado. Defina NEXT_PUBLIC_AI_SERVICE_URL." },
+        { status: 503 }
+      );
+    }
 
-  const aiUrl = process.env.NEXT_PUBLIC_AI_SERVICE_URL || "http://localhost:8000";
-  const targetUrl = streamUrl || camera.streamUrl;
-  if (!targetUrl) {
-    return NextResponse.json(
-      { error: "Câmera sem URL de stream configurada" },
-      { status: 400 }
-    );
-  }
+    const targetUrl = streamUrl || camera.streamUrl;
+    if (!targetUrl) {
+      return NextResponse.json(
+        { error: "Câmera sem URL de stream configurada" },
+        { status: 400 }
+      );
+    }
 
-  try {
     const form = new URLSearchParams();
     form.set("stream_url", targetUrl);
     const resp = await fetch(`${aiUrl}/detect/${camera.id}`, {

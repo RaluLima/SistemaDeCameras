@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     const auth = await getAuthUser(req);
     const isRecorder = hasRecorderAccess(req);
     if (!isRecorder && auth?.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const cameras = await prisma.camera.findMany({
@@ -31,6 +31,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(cameras);
   } catch (err) {
     console.error('Recording jobs error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

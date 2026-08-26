@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
     const { currentPassword, newPassword } = await req.json();

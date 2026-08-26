@@ -15,6 +15,12 @@ const MIME_BY_EXT: Record<string, string> = {
   '.avi': 'video/x-msvideo',
 };
 
+function isPathSafe(filePath: string): boolean {
+  const resolved = path.resolve(filePath);
+  const recordingsDir = path.resolve(process.env.RECORDINGS_DIR || path.join(process.cwd(), 'recordings'));
+  return resolved.startsWith(recordingsDir);
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -22,7 +28,7 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -31,28 +37,32 @@ export async function GET(
       where: { id },
       include: { camera: { select: { userId: true, retentionDays: true, name: true } } },
     });
-    if (!recording) return NextResponse.json({ detail: 'Gravação não encontrada' }, { status: 404 });
+    if (!recording) return NextResponse.json({ error: 'Gravação não encontrada' }, { status: 404 });
 
     if (recording.camera.userId !== auth.id && auth.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     if (recording.createdAt < retentionCutoff(recording.camera.retentionDays)) {
-      return NextResponse.json({ detail: 'Gravação fora do período de retenção' }, { status: 410 });
+      return NextResponse.json({ error: 'Gravação fora do período de retenção' }, { status: 410 });
     }
 
     const { searchParams } = new URL(req.url);
     const asDownload = searchParams.get('download') === '1';
 
     const filePath = recording.filePath;
-    if (!filePath) return NextResponse.json({ detail: 'Arquivo não encontrado' }, { status: 404 });
+    if (!filePath) return NextResponse.json({ error: 'Arquivo não encontrado' }, { status: 404 });
 
     if (/^https?:\/\//i.test(filePath)) {
       return NextResponse.redirect(filePath);
     }
 
+    if (!isPathSafe(filePath)) {
+      return NextResponse.json({ error: 'Caminho de arquivo inválido' }, { status: 400 });
+    }
+
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ detail: 'Arquivo não encontrado' }, { status: 404 });
+      return NextResponse.json({ error: 'Arquivo não encontrado' }, { status: 404 });
     }
 
     const stat = fs.statSync(filePath);
@@ -95,6 +105,6 @@ export async function GET(
     });
   } catch (err) {
     console.error('Recording file error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

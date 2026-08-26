@@ -6,12 +6,12 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { token, platform } = await req.json();
     if (!token) {
-      return NextResponse.json({ detail: 'Token obrigatório' }, { status: 422 });
+      return NextResponse.json({ error: 'Token obrigatório' }, { status: 422 });
     }
 
     await prisma.pushToken.upsert({
@@ -23,6 +23,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: 'ok' });
   } catch (err) {
     console.error('Push register error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

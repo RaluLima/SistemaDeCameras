@@ -4,14 +4,15 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth || auth.role !== "ADMIN") {
       return NextResponse.json({ error: "Não autorizado" }, { status: 403 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: params.id } });
+    const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
     }
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         password: hashedPassword,
         mustChangePassword: true,

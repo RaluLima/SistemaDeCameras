@@ -32,11 +32,11 @@ export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
     if (!user) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
     return NextResponse.json(user);
   } catch (err) {
     console.error('Me error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

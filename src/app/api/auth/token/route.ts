@@ -8,10 +8,11 @@ export async function POST(req: NextRequest) {
     let email: string, password: string;
 
     const ct = req.headers.get('content-type') || '';
-    if (ct.includes('multipart/form-data') || ct.includes('application/x-www-form-urlencoded')) {
-      const form = await req.formData();
-      email = (form.get('username') as string) || '';
-      password = (form.get('password') as string) || '';
+    if (ct.includes('application/x-www-form-urlencoded')) {
+      const text = await req.text();
+      const params = new URLSearchParams(text);
+      email = params.get('username') || params.get('email') || '';
+      password = params.get('password') || '';
     } else {
       const body = await req.json();
       email = body.email || body.username || '';
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json(
-        { detail: 'Email e senha obrigatórios' },
+        { error: 'Email e senha obrigatórios' },
         { status: 422 }
       );
     }
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
 
     if (!user || !user.password) {
       return NextResponse.json(
-        { detail: 'Usuário não encontrado' },
+        { error: 'Usuário não encontrado' },
         { status: 401 }
       );
     }
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return NextResponse.json(
-        { detail: 'Senha incorreta' },
+        { error: 'Senha incorreta' },
         { status: 401 }
       );
     }
@@ -84,7 +85,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error('Token error:', err);
     return NextResponse.json(
-      { detail: 'Erro interno do servidor' },
+      { error: 'Erro interno do servidor' },
       { status: 500 }
     );
   }

@@ -10,7 +10,7 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -19,10 +19,10 @@ export async function GET(
       where: { id },
       include: { camera: { select: { userId: true, retentionDays: true } } },
     });
-    if (!alert) return NextResponse.json({ detail: 'Alerta não encontrado' }, { status: 404 });
+    if (!alert) return NextResponse.json({ error: 'Alerta não encontrado' }, { status: 404 });
 
     if (alert.camera.userId !== auth.id && auth.role !== 'ADMIN') {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const cutoff = retentionCutoff(alert.camera.retentionDays);
@@ -34,6 +34,6 @@ export async function GET(
     return NextResponse.json(recordings);
   } catch (err) {
     console.error('Recordings by alert error:', err);
-    return NextResponse.json({ detail: 'Erro interno' }, { status: 500 });
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -13,7 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ error: "Email obrigatório" }, { status: 400 });
     }
 
-    const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
+    const group = await prisma.cameraGroup.findUnique({ where: { id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
     if (auth.role !== "ADMIN" && group.userId !== auth.id) {
@@ -26,14 +27,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     const existingMember = await prisma.groupMember.findUnique({
-      where: { groupId_userId: { groupId: params.id, userId: userToAdd.id } },
+      where: { groupId_userId: { groupId: id, userId: userToAdd.id } },
     });
     if (existingMember) {
       return NextResponse.json({ error: "Usuário já é membro deste grupo" }, { status: 400 });
     }
 
     const member = await prisma.groupMember.create({
-      data: { groupId: params.id, userId: userToAdd.id, role: "MEMBER" },
+      data: { groupId: id, userId: userToAdd.id, role: "MEMBER" },
       include: { user: { select: { id: true, name: true, email: true } } },
     });
 
@@ -43,7 +44,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   try {
     const auth = await getAuthUser(req);
     if (!auth) return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
@@ -55,7 +57,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: "memberId obrigatório" }, { status: 400 });
     }
 
-    const group = await prisma.cameraGroup.findUnique({ where: { id: params.id } });
+    const group = await prisma.cameraGroup.findUnique({ where: { id } });
     if (!group) return NextResponse.json({ error: "Grupo não encontrado" }, { status: 404 });
 
     if (auth.role !== "ADMIN" && group.userId !== auth.id) {

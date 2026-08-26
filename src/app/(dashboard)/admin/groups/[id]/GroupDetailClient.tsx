@@ -5,13 +5,15 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 
-export function GroupDetailClient({ group }: { group: any }) {
+export function GroupDetailClient({ group, currentUserId }: { group: any; currentUserId?: string }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [adding, setAdding] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [name, setName] = useState(group.name);
   const [description, setDescription] = useState(group.description || "");
+
+  const isOwner = group.userId === currentUserId;
 
   async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
@@ -98,29 +100,31 @@ export function GroupDetailClient({ group }: { group: any }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle>Informações do Grupo</CardTitle></CardHeader>
-          <CardContent>
-            <form onSubmit={handleUpdate} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
-              </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button type="submit" disabled={updating}>
-                  {updating ? "Salvando..." : "Salvar"}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleDelete} className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20">
-                  Excluir Grupo
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+        {isOwner && (
+          <Card>
+            <CardHeader><CardTitle>Informações do Grupo</CardTitle></CardHeader>
+            <CardContent>
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
+                  <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className="mt-1 block w-full rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm" />
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button type="submit" disabled={updating}>
+                    {updating ? "Salvando..." : "Salvar"}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleDelete} className="text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-700 dark:hover:bg-red-900/20">
+                    Excluir Grupo
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader><CardTitle>Proprietário</CardTitle></CardHeader>
@@ -136,19 +140,21 @@ export function GroupDetailClient({ group }: { group: any }) {
           <CardTitle>Membros ({group.members.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-2 mb-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Email do usuário cadastrado..."
-              required
-              className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm"
-            />
-            <Button type="submit" disabled={adding}>
-              {adding ? "Adicionando..." : "Adicionar"}
-            </Button>
-          </form>
+          {isOwner && (
+            <form onSubmit={handleAddMember} className="flex flex-col sm:flex-row gap-2 mb-4">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email do usuário cadastrado..."
+                required
+                className="flex-1 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-dark-200 dark:text-gray-100 px-3 py-2 shadow-sm"
+              />
+              <Button type="submit" disabled={adding}>
+                {adding ? "Adicionando..." : "Adicionar"}
+              </Button>
+            </form>
+          )}
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
             Apenas usuários já cadastrados no sistema podem ser adicionados.
           </p>
@@ -163,7 +169,7 @@ export function GroupDetailClient({ group }: { group: any }) {
                   <span className={`text-xs px-2 py-1 rounded-full ${member.role === "OWNER" ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300" : "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300"}`}>
                     {member.role}
                   </span>
-                  {member.role !== "OWNER" && (
+                  {isOwner && member.role !== "OWNER" && (
                     <button onClick={() => handleRemoveMember(member.id)} className="text-red-500 hover:text-red-700 text-sm">
                       Remover
                     </button>

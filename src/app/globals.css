@@ -3,13 +3,10 @@
 @tailwind utilities;
 
 @layer base {
-  html {
-    @apply transition-colors duration-200;
-  }
   body {
     @apply bg-gray-50 text-gray-900 dark:bg-dark-300 dark:text-gray-100 transition-colors duration-200;
   }
-  * {
+  input, textarea, select {
     @apply border-gray-200 dark:border-gray-700;
   }
 }

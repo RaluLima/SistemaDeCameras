@@ -6,7 +6,7 @@ const config: Config = {
     extend: {
       colors: {
         dark: {
-          50: "#f8fafc",
+          50: "#2a2a3e",
           100: "#1e1e2e",
           200: "#181825",
           300: "#11111b",

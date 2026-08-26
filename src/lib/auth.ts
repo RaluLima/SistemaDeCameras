@@ -4,13 +4,15 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
+const googleConfigured = !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
+
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   providers: [
-    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+    ...(googleConfigured
       ? [GoogleProvider({
-          clientId: process.env.GOOGLE_CLIENT_ID,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          clientId: process.env.GOOGLE_CLIENT_ID!,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         })]
       : []),
     CredentialsProvider({
@@ -53,33 +55,6 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-    CredentialsProvider({
-      id: "phone",
-      name: "phone",
-      credentials: {
-        phone: { label: "Telefone", type: "tel" },
-        code: { label: "Código", type: "text" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.phone || !credentials?.code) {
-          throw new Error("Telefone e código obrigatórios");
-        }
-        const user = await prisma.user.findFirst({
-          where: { phone: credentials.phone },
-        });
-        if (!user) {
-          throw new Error("Telefone não cadastrado");
-        }
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          plan: user.plan,
-          planExpiresAt: user.planExpiresAt,
-        };
-      },
-    }),
   ],
   callbacks: {
     async signIn({ user, account }) {
@@ -89,7 +64,7 @@ export const authOptions: NextAuthOptions = {
         });
         if (existingUser) {
           if (existingUser.authProvider !== "google" && existingUser.password) {
-            return false;
+            throw new Error("Esta conta já possui login por email/senha. Use o login com email.");
           }
           await prisma.user.update({
             where: { id: existingUser.id },

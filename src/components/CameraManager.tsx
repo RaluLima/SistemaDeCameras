@@ -11,7 +11,7 @@ const cameraTypes = [
   { value: "OTHER", label: "Outro", description: "Outro tipo de câmera" },
 ];
 
-const retentionOptions = [7, 15, 30, 60, 90];
+const retentionOptions = [7, 15, 30, 60];
 
 interface FormData {
   name: string;
@@ -21,9 +21,10 @@ interface FormData {
   retentionDays: number;
   recordingEnabled: boolean;
   aiMonitoringEnabled: boolean;
+  userId: string;
 }
 
-const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE", retentionDays: 30, recordingEnabled: false, aiMonitoringEnabled: false };
+const emptyForm: FormData = { name: "", type: "IP", streamUrl: "", status: "ACTIVE", retentionDays: 30, recordingEnabled: false, aiMonitoringEnabled: false, userId: "" };
 
 export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [cameras, setCameras] = useState<any[]>([]);
@@ -33,6 +34,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [form, setForm] = useState<FormData>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [userPlan, setUserPlan] = useState<string>("FREE");
+  const [users, setUsers] = useState<any[]>([]);
 
   const fetchCameras = useCallback(async () => {
     try {
@@ -51,7 +53,13 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
       .then((r) => (r.ok ? r.json() : null))
       .then((me) => me?.plan && setUserPlan(me.plan))
       .catch(() => {});
-  }, [fetchCameras]);
+    if (isAdmin) {
+      fetch("/api/users")
+        .then((r) => (r.ok ? r.json() : []))
+        .then((list) => setUsers(Array.isArray(list) ? list : []))
+        .catch(() => {});
+    }
+  }, [fetchCameras, isAdmin]);
 
   function openAdd() {
     setForm(emptyForm);
@@ -60,7 +68,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   }
 
   function openEdit(cam: any) {
-    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status, retentionDays: cam.retentionDays || 30, recordingEnabled: cam.recordingEnabled || false, aiMonitoringEnabled: cam.aiMonitoringEnabled || false });
+    setForm({ name: cam.name, type: cam.type, streamUrl: cam.streamUrl || "", status: cam.status, retentionDays: cam.retentionDays || 30, recordingEnabled: cam.recordingEnabled || false, aiMonitoringEnabled: cam.aiMonitoringEnabled || false, userId: cam.userId || "" });
     setEditingId(cam.id);
     setShowModal(true);
   }
@@ -68,6 +76,7 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim()) { toast.error("Nome é obrigatório"); return; }
+    if (isAdmin && !editingId && !form.userId) { toast.error("Selecione o usuário responsável"); return; }
     setSaving(true);
     try {
       const url = editingId ? `/api/cameras/${editingId}` : "/api/cameras";
@@ -225,6 +234,19 @@ export function CameraManager({ isAdmin = false }: { isAdmin?: boolean }) {
                   <option value="ERROR">Erro</option>
                 </select>
               </div>
+
+              {isAdmin && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Responsável (usuário)</label>
+                  <select value={form.userId} onChange={(e) => setForm({ ...form, userId: e.target.value })} className="input-field">
+                    <option value="">Selecione um usuário</option>
+                    {users.map((u: any) => (
+                      <option key={u.id} value={u.id}>{u.name} ({u.email})</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Selecione o usuário que será dono desta câmera.</p>
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Período de retenção das gravações</label>

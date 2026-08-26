@@ -1,3 +1,4 @@
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 
@@ -9,7 +10,7 @@ const typeLabels: Record<string, string> = {
   IP: "IP", USB: "USB", WIRELESS: "Wireless", ANALOG: "Analógica", OTHER: "Outro",
 };
 
-export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?: boolean }) {
+export const CameraCard = React.memo(function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?: boolean }) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -57,4 +58,4 @@ export function CameraCard({ camera, isAdmin = false }: { camera: any; isAdmin?:
       </CardContent>
     </Card>
   );
-}
+});

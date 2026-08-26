@@ -8,6 +8,7 @@ export default function ChangePasswordPage() {
   const router = useRouter();
   const { data: session, update } = useSession();
   const [loading, setLoading] = useState(false);
+  const role = (session?.user as any)?.role;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,7 +33,7 @@ export default function ChangePasswordPage() {
       if (res.ok) {
         await update({ mustChangePassword: false });
         toast.success("Senha alterada com sucesso!");
-        router.push("/admin");
+        router.push(role === "ADMIN" ? "/admin" : "/user/cameras");
       } else {
         toast.error(json.error || "Erro ao alterar senha");
       }

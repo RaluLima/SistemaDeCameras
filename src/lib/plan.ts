@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 
-export const RETENTION_OPTIONS = [7, 15, 30, 60, 90] as const;
+export const RETENTION_OPTIONS = [7, 15, 30, 60] as const;
 
 export type PlanInfo = {
   plan?: string | null;

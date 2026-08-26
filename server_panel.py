@@ -35,6 +35,7 @@ class ServerPanel:
         self.services = {
             "postgresql": {"name": "PostgreSQL", "port": 5432, "status": "stopped", "pid": None},
             "nextjs": {"name": "Next.js", "port": 3000, "status": "stopped", "pid": None},
+            "ai-service": {"name": "AI Service", "port": 8000, "status": "stopped", "pid": None},
             "cloudflare": {"name": "Cloudflare Tunnel", "port": 20241, "status": "stopped", "pid": None}
         }
         self.setup_ui()
@@ -191,6 +192,15 @@ class ServerPanel:
                 elif key == "nextjs":
                     subprocess.Popen([self.node_exe, "start", "-p", "3000", "-H", "0.0.0.0"], cwd=self.project_dir, creationflags=NO_WINDOW, startupinfo=si, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     time.sleep(8)
+                elif key == "ai-service":
+                    env = os.environ.copy()
+                    env["NEXTJS_URL"] = "http://localhost:3000"
+                    env["AI_SECRET"] = "camview-ai-secret-2024"
+                    subprocess.Popen(
+                        ["python", os.path.join(self.project_dir, "ai-service", "main.py")],
+                        cwd=self.project_dir, creationflags=NO_WINDOW, startupinfo=si,
+                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, env=env)
+                    time.sleep(5)
                 elif key == "cloudflare":
                     err_log = os.path.join(self.project_dir, "tunnel-err.log")
                     if os.path.exists(err_log):
@@ -225,7 +235,7 @@ class ServerPanel:
                     subprocess.run(["taskkill", "/F", "/PID", str(svc["pid"])], capture_output=True, timeout=10, startupinfo=si, creationflags=NO_WINDOW)
                     subprocess.run(["taskkill", "/F", "/T", "/PID", str(svc["pid"])], capture_output=True, timeout=10, startupinfo=si, creationflags=NO_WINDOW)
                 else:
-                    for pattern_name in ["next", "cloudflared"]:
+                    for pattern_name in ["next", "cloudflared", "python"]:
                         subprocess.run(["taskkill", "/F", "/IM", f"{pattern_name}.exe"], capture_output=True, timeout=10, startupinfo=si, creationflags=NO_WINDOW)
                 time.sleep(2)
                 self.check_service(key)
@@ -247,7 +257,7 @@ class ServerPanel:
         self.root.after(0, lambda: self.status_bar.config(text="Iniciando todos os servicos..."))
         self.start_all_btn.config(state=tk.DISABLED)
         def go():
-            for key in ["postgresql", "nextjs", "cloudflare"]:
+            for key in ["postgresql", "nextjs", "ai-service", "cloudflare"]:
                 if self.services[key]["status"] != "running":
                     self.start_service(key)
                     time.sleep(2)
@@ -259,7 +269,7 @@ class ServerPanel:
         self.root.after(0, lambda: self.status_bar.config(text="Parando todos os servicos..."))
         self.stop_all_btn.config(state=tk.DISABLED)
         def go():
-            for key in ["cloudflare", "nextjs", "postgresql"]:
+            for key in ["cloudflare", "ai-service", "nextjs", "postgresql"]:
                 if self.services[key]["status"] == "running":
                     self.stop_service(key)
                     time.sleep(2)

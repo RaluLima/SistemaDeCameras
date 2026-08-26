@@ -21,3 +21,5 @@ test-video.mp4
 tunnel-err.log
 opencode.json
 tools/
+ai-service/pose_landmarker.task
+q.sql

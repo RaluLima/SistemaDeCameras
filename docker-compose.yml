@@ -1,10 +1,12 @@
+version: "3.8"
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: camera-monitor
+      POSTGRES_DB: camera_monitor
     ports:
       - "5432:5432"
     volumes:
@@ -15,12 +17,23 @@ services:
       timeout: 5s
       retries: 5
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   ai-service:
     build: ./ai-service
     ports:
       - "8000:8000"
     environment:
       - NEXTJS_URL=http://nextjs:3000
+      - AI_SECRET=camview-ai-secret-2024
     depends_on:
       - nextjs
 
@@ -29,15 +42,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/camera-monitor?schema=public
-      - NEXTAUTH_SECRET=camera-monitor-secret-change-in-production-1234567890
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/camera_monitor?schema=public
+      - NEXTAUTH_SECRET=camera-monitor-secret-change-in-production
       - NEXTAUTH_URL=http://localhost:3000
       - NEXT_PUBLIC_AI_SERVICE_URL=http://localhost:8000
-      - GOOGLE_CLIENT_ID=
-      - GOOGLE_CLIENT_SECRET=
-      - TWILIO_ACCOUNT_SID=
-      - TWILIO_AUTH_TOKEN=
-      - TWILIO_PHONE_NUMBER=
+      - LIVE_BASE_URL=http://localhost:8888
     depends_on:
       postgres:
         condition: service_healthy

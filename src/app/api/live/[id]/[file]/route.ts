@@ -9,7 +9,7 @@ export async function GET(
   try {
     const auth = await getAuthUser(req);
     if (!auth) {
-      return NextResponse.json({ detail: 'Não autorizado' }, { status: 401 });
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
     const { id, file } = await params;
@@ -19,25 +19,36 @@ export async function GET(
       select: { id: true, userId: true, name: true, streamUrl: true },
     });
     if (!camera) {
-      return NextResponse.json({ detail: 'Câmera não encontrada' }, { status: 404 });
+      return NextResponse.json({ error: 'Câmera não encontrada' }, { status: 404 });
     }
     if (auth.role !== 'ADMIN' && camera.userId !== auth.id) {
-      return NextResponse.json({ detail: 'Acesso negado' }, { status: 403 });
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
     const base = process.env.LIVE_BASE_URL?.replace(/\/+$/, '');
     if (!base) {
       return NextResponse.json(
-        { detail: 'Servidor de mídia (HLS) não configurado. Defina LIVE_BASE_URL.' },
+        { error: 'Servidor de mídia (HLS) não configurado. Defina LIVE_BASE_URL.' },
         { status: 503 }
       );
     }
     if (!camera.streamUrl) {
-      return NextResponse.json({ detail: 'Câmera sem URL de stream' }, { status: 400 });
+      return NextResponse.json({ error: 'Câmera sem URL de stream' }, { status: 400 });
     }
 
+    const safeFile = file.replace(/[^a-zA-Z0-9._/-]/g, '');
+    if (safeFile.includes('..')) {
+      return NextResponse.json({ error: 'Caminho invalido' }, { status: 400 });
+    }
     const search = req.nextUrl.search || '';
-    const target = `${base}/${encodeURIComponent(id)}/${file}${search}`;
+    let streamPath: string;
+    try {
+      const url = new URL(camera.streamUrl);
+      streamPath = url.pathname.replace(/^\/+/, '');
+    } catch {
+      streamPath = encodeURIComponent(id);
+    }
+    const target = `${base}/${streamPath}/${safeFile}${search}`;
 
     const upstream = await fetch(target, {
       headers: { accept: '*/*' },
@@ -55,7 +66,7 @@ export async function GET(
   } catch (err) {
     console.error('Live proxy error:', err);
     return NextResponse.json(
-      { detail: 'Não foi possível obter o stream da câmera' },
+      { error: 'Não foi possível obter o stream da câmera' },
       { status: 502 }
     );
   }

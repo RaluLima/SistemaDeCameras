@@ -3,6 +3,8 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const VALID_ROLES = ["ADMIN", "USER"];
 const VALID_PLANS = ["FREE", "PAID"];
 

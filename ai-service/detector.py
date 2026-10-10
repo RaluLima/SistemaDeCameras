@@ -31,6 +31,7 @@ class FallDetector:
         self.running = False
         self.cap: Optional[cv2.VideoCapture] = None
         self.thread: Optional[threading.Thread] = None
+        self.last_ts_ms = 0
 
         PoseLandmarker = mp.tasks.vision.PoseLandmarker
         PoseLandmarkerOptions = mp.tasks.vision.PoseLandmarkerOptions
@@ -99,9 +100,17 @@ class FallDetector:
     def _process_frame(self, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
-        timestamp_ms = int(time.time() * 1000)
+        # MediaPipe exige timestamps estritamente crescentes em RunningMode.VIDEO
+        ts = int(time.time() * 1000)
+        if ts <= self.last_ts_ms:
+            ts = self.last_ts_ms + 1
+        self.last_ts_ms = ts
 
-        result = self.pose_landmarker.detect_for_video(mp_image, timestamp_ms)
+        try:
+            result = self.pose_landmarker.detect_for_video(mp_image, ts)
+        except Exception as e:
+            print(f"[AI] Erro MediaPipe em {self.camera_id}: {e}")
+            return False, None
 
         if result.pose_landmarks:
             landmarks = result.pose_landmarks[0]
@@ -112,51 +121,96 @@ class FallDetector:
             return False, landmarks
         return False, None
 
+    def _open_capture(self) -> bool:
+        self.cap = cv2.VideoCapture(self.rtsp_url)
+        if self.cap is not None and self.cap.isOpened():
+            self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+            return True
+        if self.cap is not None:
+            self.cap.release()
+        self.cap = None
+        return False
+
     def _capture_loop(self):
         print(f"[AI] Iniciando captura RTSP: {self.camera_id} -> {self.rtsp_url}")
-        self.cap = cv2.VideoCapture(self.rtsp_url)
-        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-        if not self.cap.isOpened():
-            print(f"[AI] ERRO: Nao foi possivel conectar na camera {self.camera_id}")
-            self.running = False
-            return
-
-        print(f"[AI] Conectado com sucesso: {self.camera_id}")
         frame_interval = 1.0 / 15
-        while self.running:
-            start = time.time()
-            ret, frame = self.cap.read()
-            if not ret:
-                print(f"[AI] Frame perdido de {self.camera_id}, reconectando...")
+        reconnect_failures = 0
+
+        try:
+            if not self._open_capture():
+                print(f"[AI] Stream indisponivel para {self.camera_id}; aguardando reconexao...")
+                reconnect_failures += 1
+
+            if reconnect_failures == 0:
+                print(f"[AI] Conectado com sucesso: {self.camera_id}")
+
+            while self.running:
+                if self.cap is None:
+                    # stream caiu: tenta reconectar indefinidamente
+                    if self._open_capture():
+                        reconnect_failures = 0
+                        print(f"[AI] Reconectado: {self.camera_id}")
+                    else:
+                        reconnect_failures += 1
+                        if reconnect_failures % 10 == 0:
+                            print(f"[AI] ainda sem stream para {self.camera_id} (tentativa {reconnect_failures})")
+                        time.sleep(min(5.0, 1.0 + reconnect_failures * 0.25))
+                    continue
+
+                start = time.time()
+                try:
+                    ret, frame = self.cap.read()
+                except Exception as e:
+                    print(f"[AI] Falha de leitura em {self.camera_id}: {e}")
+                    ret, frame = False, None
+
+                if not ret or frame is None:
+                    self.cap.release()
+                    self.cap = None
+                    time.sleep(1)
+                    continue
+
+                self._process_frame(frame)
+
+                elapsed = time.time() - start
+                if elapsed < frame_interval:
+                    time.sleep(frame_interval - elapsed)
+
+        except Exception as e:
+            # nunca deixar a thread morrer em silencio: o is_running() rely on self.running
+            print(f"[AI] Loop de captura encerrado por erro em {self.camera_id}: {e}")
+        finally:
+            if self.cap is not None:
                 self.cap.release()
-                time.sleep(2)
-                self.cap = cv2.VideoCapture(self.rtsp_url)
-                self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-                continue
-
-            self._process_frame(frame)
-            elapsed = time.time() - start
-            if elapsed < frame_interval:
-                time.sleep(frame_interval - elapsed)
-
-        if self.cap:
-            self.cap.release()
-        print(f"[AI] Captura finalizada: {self.camera_id}")
+                self.cap = None
+            self.running = False
+            print(f"[AI] Captura finalizada: {self.camera_id}")
 
     def start(self):
-        if self.running:
+        if self.is_running():
             return
         self.running = True
         self.state = FallState()
+        self.last_ts_ms = 0
         self.thread = threading.Thread(target=self._capture_loop, daemon=True)
         self.thread.start()
 
     def stop(self):
         self.running = False
-        if self.thread:
+        if self.cap is not None:
+            try:
+                self.cap.release()
+            except Exception:
+                pass
+            self.cap = None
+        if self.thread and self.thread.is_alive():
             self.thread.join(timeout=5)
         self.thread = None
 
     def is_running(self):
-        return self.running
+        if not self.running:
+            return False
+        if self.thread is None or not self.thread.is_alive():
+            self.running = False
+            return False
+        return True

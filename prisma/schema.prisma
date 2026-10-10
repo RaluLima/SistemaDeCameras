@@ -71,7 +71,7 @@ model Alert {
   timestamp   DateTime  @default(now())
   processed   Boolean   @default(false)
   cameraId    String
-  camera      Camera    @relation(fields: [cameraId], references: [id])
+  camera      Camera    @relation(fields: [cameraId], references: [id], onDelete: Cascade)
   recordings  Recording[]
 }
 

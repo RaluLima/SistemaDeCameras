@@ -3,6 +3,8 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);

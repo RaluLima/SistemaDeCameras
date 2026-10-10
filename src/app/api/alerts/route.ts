@@ -7,6 +7,8 @@ import { emitAlert } from "@/lib/socket-server";
 import { publishAlert } from "@/lib/redis";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const VALID_ALERT_TYPES = ["SUSPICIOUS_MOVEMENT", "INTRUSION", "CONNECTION_LOST", "FALL_DETECTED"];
 
 export async function GET(req: NextRequest) {

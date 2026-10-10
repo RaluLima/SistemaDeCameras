@@ -22,4 +22,7 @@ tunnel-err.log
 opencode.json
 tools/
 ai-service/pose_landmarker.task
+ai-service/active_monitors.json
+recorder/worker.pid
+panel-diagnostico.txt
 q.sql

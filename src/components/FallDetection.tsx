@@ -244,8 +244,13 @@ export function FallDetection() {
 
     const cam = new Camera(videoRef.current, {
       onFrame: async () => {
-        if (poseRef.current && videoRef.current) {
-          await poseRef.current.send({ image: videoRef.current });
+        const v = videoRef.current;
+        if (poseRef.current && v && v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+          try {
+            await poseRef.current.send({ image: v });
+          } catch (e) {
+            console.warn("MediaPipe send falhou (webcam):", e);
+          }
         }
       },
       width: 640,
@@ -264,6 +269,28 @@ export function FallDetection() {
 
     const hlsUrl = `/api/live/${cam.id}/index.m3u8`;
 
+    // Envia frames ao MediaPipe SOMENTE quando o video ja tem um quadro decodificado.
+    // Sem essa guarda, o primeiro send() dispara logo apos MANIFEST_PARSED (video ainda
+    // vazio), o WASM aborta com "ROI width and height must be > 0" e a imagem nunca aparece.
+    // O try/catch garante que uma falha isolada nao mate o loop de requestAnimationFrame.
+    const startTicks = () => {
+      const tick = async () => {
+        if (!activeRef.current) return;
+        const v = videoRef.current;
+        if (v && poseRef.current && v.readyState >= 2 && v.videoWidth > 0 && v.videoHeight > 0) {
+          try {
+            await poseRef.current.send({ image: v });
+          } catch (e) {
+            console.warn("MediaPipe send falhou:", e);
+          }
+        }
+        if (activeRef.current) {
+          animRef.current = requestAnimationFrame(tick);
+        }
+      };
+      animRef.current = requestAnimationFrame(tick);
+    };
+
     return new Promise<void>((resolve, reject) => {
       const video = videoRef.current!;
       if (Hls.isSupported()) {
@@ -272,38 +299,22 @@ export function FallDetection() {
         hls.loadSource(hlsUrl);
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(() => {});
+          video.play().catch((e) => console.warn("play() falhou:", e));
           setupPose(false);
-          const tick = async () => {
-            if (poseRef.current && videoRef.current && activeRef.current) {
-              await poseRef.current.send({ image: videoRef.current });
-            }
-            if (activeRef.current) {
-              animRef.current = requestAnimationFrame(tick);
-            }
-          };
-          tick();
+          startTicks();
           resolve();
         });
         hls.on(Hls.Events.ERROR, (_e, data) => {
           if (data.fatal) {
-            reject(new Error("Falha ao carregar stream HLS"));
+            reject(new Error(`Falha ao carregar o stream (${data.details})`));
           }
         });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = hlsUrl;
         video.addEventListener("loadedmetadata", () => {
-          video.play().catch(() => {});
+          video.play().catch((e) => console.warn("play() falhou:", e));
           setupPose(false);
-          const tick = async () => {
-            if (poseRef.current && videoRef.current && activeRef.current) {
-              await poseRef.current.send({ image: videoRef.current });
-            }
-            if (activeRef.current) {
-              animRef.current = requestAnimationFrame(tick);
-            }
-          };
-          tick();
+          startTicks();
           resolve();
         });
       } else {
@@ -442,8 +453,10 @@ export function FallDetection() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="relative bg-black rounded-lg overflow-hidden shadow-xl">
-            <video ref={videoRef} playsInline muted className="absolute top-0 left-0 w-full h-full opacity-0 pointer-events-none" />
-            <canvas ref={canvasRef} className="w-full aspect-video" />
+            {/* o video fica visivel como fallback: se o MediaPipe falhar, a imagem ainda aparece;
+                o canvas fica sobreposto e, quando funciona, desenha o quadro + o esqueleto */}
+            <video ref={videoRef} playsInline muted className="block w-full aspect-video" />
+            <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full" />
             {!active && (
               <div className="absolute inset-0 flex items-center justify-center bg-black/60 text-gray-400 text-lg">
                 {status === "Erro" ? "Erro ao acessar camera" : "Selecione a fonte e clique em \"Iniciar Monitoramento\" para comecar"}

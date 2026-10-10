@@ -3,6 +3,8 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import { hasAIAccess } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);
@@ -71,16 +73,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const form = new URLSearchParams();
-    form.set("stream_url", targetUrl);
-    const resp = await fetch(`${aiUrl}/detect/${camera.id}`, {
+    const resp = await fetch(`${aiUrl}/start`, {
       method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: form.toString(),
-      signal: AbortSignal.timeout(90000),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ camera_id: cameraId, rtsp_url: targetUrl }),
+      signal: AbortSignal.timeout(30000),
     });
     const data = await resp.json();
-    return NextResponse.json(data, { status: resp.status });
+    if (!resp.ok) {
+      return NextResponse.json(
+        { error: data?.detail || "Falha ao iniciar o monitoramento de IA" },
+        { status: resp.status }
+      );
+    }
+    return NextResponse.json(data);
   } catch {
     return NextResponse.json(
       { error: "Serviço de IA indisponível no momento" },

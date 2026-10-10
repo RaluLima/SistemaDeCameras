@@ -1,4 +1,6 @@
 @echo off
-cd /d "F:\SistemaDeCameras-main"
-del /q "F:\SistemaDeCameras-main\tunnel-err.log" >nul 2>&1
-powershell -NoProfile -Command "Start-Process 'F:\SistemaDeCameras-main\cloudflared.exe' -ArgumentList 'tunnel','--url','http://127.0.0.1:3000' -RedirectStandardError 'F:\SistemaDeCameras-main\tunnel-err.log' -WindowStyle Hidden"
+title Camera Monitor - Cloudflare Tunnel
+cd /d "%~dp0"
+del /q "tunnel-err.log" >nul 2>&1
+start "" "cloudflared.exe" tunnel --url http://127.0.0.1:3000 2> "tunnel-err.log"
+echo Tunel iniciado. URL publica em tunnel-err.log

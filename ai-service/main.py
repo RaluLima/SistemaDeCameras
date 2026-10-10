@@ -1,10 +1,12 @@
 import os
 import time
+import json
 import threading
 import httpx
 import asyncio
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, File, UploadFile, Form
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict
@@ -23,6 +25,7 @@ app.add_middleware(
 NEXTJS_URL = os.getenv("NEXTJS_URL", "http://localhost:3000")
 AI_SECRET = os.getenv("AI_SECRET", "camview-ai-secret-2024")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
+STATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "active_monitors.json")
 
 monitors: Dict[str, FallDetector] = {}
 
@@ -41,6 +44,71 @@ class StartMonitorRequest(BaseModel):
 
 class StopMonitorRequest(BaseModel):
     camera_id: str
+
+def _load_saved_monitors() -> Dict[str, str]:
+    try:
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return {k: v for k, v in data.items() if isinstance(v, str) and v}
+    except Exception as e:
+        print(f"[AI] Erro ao ler {STATE_FILE}: {e}")
+    return {}
+
+def _save_monitors():
+    try:
+        payload = {
+            cid: m.rtsp_url
+            for cid, m in monitors.items()
+            if m.is_running()
+        }
+        tmp = STATE_FILE + ".tmp"
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(payload, f, indent=2)
+        os.replace(tmp, STATE_FILE)
+    except Exception as e:
+        print(f"[AI] Erro ao salvar estado dos monitores: {e}")
+
+def start_detector(camera_id: str, rtsp_url: str, persist: bool = True):
+    existing = monitors.get(camera_id)
+    if existing is not None and existing.is_running():
+        return "already_running", existing
+
+    if existing is not None:
+        try:
+            existing.stop()
+        except Exception:
+            pass
+        monitors.pop(camera_id, None)
+
+    def on_fall(cid: str, alert_count: int):
+        threading.Thread(target=send_alert_sync, args=(cid, alert_count), daemon=True).start()
+
+    detector = FallDetector(camera_id=camera_id, rtsp_url=rtsp_url, on_fall=on_fall)
+    monitors[camera_id] = detector
+    detector.start()
+    if persist:
+        _save_monitors()
+    return "started", detector
+
+def restore_monitors():
+    saved = _load_saved_monitors()
+    if not saved:
+        print("[AI] Nenhum monitor salvo para restaurar")
+        return
+    print(f"[AI] Restaurando {len(saved)} monitor(es) salvo(s)...")
+    for camera_id, rtsp_url in saved.items():
+        try:
+            start_detector(camera_id, rtsp_url, persist=False)
+            print(f"[AI] Monitor restaurado: {camera_id} -> {rtsp_url}")
+        except Exception as e:
+            print(f"[AI] Falha ao restaurar {camera_id}: {e}")
+    _save_monitors()
+
+@app.on_event("startup")
+async def on_startup():
+    threading.Thread(target=restore_monitors, daemon=True).start()
 
 def send_alert_sync(camera_id: str, alert_count: int):
     try:
@@ -94,67 +162,68 @@ async def list_monitors():
 
 @app.post("/start")
 async def start_monitor(req: StartMonitorRequest):
-    if req.camera_id in monitors and monitors[req.camera_id].is_running():
-        return {"status": "already_running", "camera_id": req.camera_id}
-
-    def on_fall(camera_id: str, alert_count: int):
-        threading.Thread(
-            target=send_alert_sync,
-            args=(camera_id, alert_count),
-            daemon=True,
-        ).start()
-
-    detector = FallDetector(
-        camera_id=req.camera_id,
-        rtsp_url=req.rtsp_url,
-        on_fall=on_fall,
-    )
-    monitors[req.camera_id] = detector
-    detector.start()
-
-    return {"status": "started", "camera_id": req.camera_id, "rtsp_url": req.rtsp_url}
+    status, _ = start_detector(req.camera_id, req.rtsp_url)
+    return {"status": status, "camera_id": req.camera_id, "rtsp_url": req.rtsp_url}
 
 @app.post("/stop")
 async def stop_monitor(req: StopMonitorRequest):
-    if req.camera_id not in monitors:
-        raise HTTPException(status_code=404, detail="Monitor not found")
+    detector = monitors.get(req.camera_id)
+    if detector is None:
+        _save_monitors()
+        return {"status": "not_found", "camera_id": req.camera_id}
 
-    monitors[req.camera_id].stop()
+    detector.stop()
+    monitors.pop(req.camera_id, None)
+    _save_monitors()
     return {"status": "stopped", "camera_id": req.camera_id}
 
 @app.post("/stop-all")
 async def stop_all():
-    for m in monitors.values():
+    for m in list(monitors.values()):
         m.stop()
+    monitors.clear()
+    _save_monitors()
     return {"status": "all_stopped"}
 
+# Um detector por camera para o endpoint frame-a-frame, reutilizado entre requisicoes
+# (a logica de queda depende do historico de quadros anteriores).
+# NAO usar a API legada mp.solutions.* aqui: inicializa-la corrompe a resolucao do
+# caminho do modelo do MediaPipe Tasks ("Unable to open file at ...site-packages/D:\...")
+# e qualquer FallDetector criado depois passa a falhar.
+_frame_detectors: Dict[str, FallDetector] = {}
+_frame_detectors_lock = threading.Lock()
+
+def _get_frame_detector(camera_id: str) -> FallDetector:
+    with _frame_detectors_lock:
+        det = _frame_detectors.get(camera_id)
+        if det is None:
+            det = FallDetector(camera_id=camera_id, rtsp_url="")
+            _frame_detectors[camera_id] = det
+        return det
+
 @app.post("/detect-frame")
-async def detect_frame(file: bytes = None, camera_id: str = "unknown"):
+async def detect_frame(file: UploadFile = File(...), camera_id: str = Form("unknown")):
     import cv2
     import numpy as np
-    import mediapipe as mp
 
-    if not file:
+    # "file" precisa ser UploadFile/File(...): um parametro "bytes" simples e
+    # interpretado como Query param pelo FastAPI e o multipart do navegador e ignorado.
+    data = await file.read()
+    if not data:
         raise HTTPException(status_code=400, detail="No frame provided")
 
-    nparr = np.frombuffer(file, np.uint8)
+    nparr = np.frombuffer(data, np.uint8)
     frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if frame is None:
         raise HTTPException(status_code=400, detail="Invalid frame")
 
-    mp_pose = mp.solutions.pose
-    pose = mp_pose.Pose(model_complexity=1, min_detection_confidence=0.5, min_tracking_confidence=0.5)
-
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(rgb)
-
-    detected = False
-    if results.pose_landmarks:
-        from detector import FallDetector as FD
-        detector = FD(camera_id=camera_id, rtsp_url="")
-        detected = detector.detect_fall(results.pose_landmarks.landmark)
-        if detected:
-            send_alert_sync(camera_id, detector.state.alert_count)
+    detector = _get_frame_detector(camera_id)
+    # _process_frame e CPU-bound: roda em thread para nao travar o event loop do uvicorn
+    detected, _ = await run_in_threadpool(detector._process_frame, frame)
+    if detected:
+        threading.Thread(
+            target=send_alert_sync, args=(camera_id, detector.state.alert_count), daemon=True
+        ).start()
 
     return {"detected": detected, "camera_id": camera_id}
 

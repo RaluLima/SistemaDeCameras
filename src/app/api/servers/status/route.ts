@@ -1,71 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { getRecorderStatus } from "@/lib/servers";
 import { exec } from "child_process";
 import { promisify } from "util";
+
+export const dynamic = "force-dynamic";
 
 const execAsync = promisify(exec);
 
 interface ServiceStatus {
+  key: string;
   name: string;
   status: "running" | "stopped" | "error";
   port?: number;
   pid?: number;
-  uptime?: string;
 }
 
 async function checkPort(port: number): Promise<{ running: boolean; pid?: number }> {
   try {
     const { stdout } = await execAsync(`netstat -ano | findstr ":${port}" | findstr "LISTENING"`);
-    const match = stdout.trim().match(/LISTENING\s+(\d+)$/);
-    if (match) {
-      return { running: true, pid: parseInt(match[1]) };
-    }
+    const match = stdout.match(/LISTENING\s+(\d+)/m);
+    if (match) return { running: true, pid: parseInt(match[1]) };
     return { running: false };
   } catch {
     return { running: false };
   }
 }
 
-async function getPostgreSQLStatus(): Promise<ServiceStatus> {
-  const pgBin = "C:\\Program Files\\PostgreSQL\\16\\bin";
-  const pgData = "C:\\Program Files\\PostgreSQL\\16\\data";
-  
-  try {
-    const { stdout } = await execAsync(`"${pgBin}\\pg_ctl" status -D "${pgData}"`);
-    const portCheck = await checkPort(5432);
-    return {
-      name: "PostgreSQL",
-      status: portCheck.running ? "running" : "stopped",
-      port: 5432,
-      pid: portCheck.pid,
-    };
-  } catch {
-    return {
-      name: "PostgreSQL",
-      status: "stopped",
-      port: 5432,
-    };
-  }
-}
-
-async function getNextJSStatus(): Promise<ServiceStatus> {
-  const portCheck = await checkPort(3000);
-  return {
-    name: "Next.js",
-    status: portCheck.running ? "running" : "stopped",
-    port: 3000,
-    pid: portCheck.pid,
-  };
-}
-
-async function getCloudflareStatus(): Promise<ServiceStatus> {
-  const portCheck = await checkPort(20241);
-  return {
-    name: "Cloudflare Tunnel",
-    status: portCheck.running ? "running" : "stopped",
-    port: 20241,
-    pid: portCheck.pid,
-  };
+async function probe(key: string, name: string, port: number): Promise<ServiceStatus> {
+  const r = await checkPort(port);
+  return { key, name, status: r.running ? "running" : "stopped", port, pid: r.pid };
 }
 
 export async function GET(req: NextRequest) {
@@ -75,16 +39,17 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const [postgres, nextjs, cloudflare] = await Promise.all([
-      getPostgreSQLStatus(),
-      getNextJSStatus(),
-      getCloudflareStatus(),
+    const services = await Promise.all([
+      probe("postgresql", "PostgreSQL", 5432),
+      probe("redis", "Redis", 6379),
+      probe("nextjs", "Next.js", 3000),
+      probe("mediamtx", "MediaMTX", 8888),
+      probe("ai", "AI Service", 8000),
+      probe("cloudflare", "Cloudflare Tunnel", 20241),
+      getRecorderStatus(),
     ]);
 
-    return NextResponse.json({
-      services: [postgres, nextjs, cloudflare],
-      timestamp: new Date().toISOString(),
-    });
+    return NextResponse.json({ services, timestamp: new Date().toISOString() });
   } catch {
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }

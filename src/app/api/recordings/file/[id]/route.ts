@@ -6,6 +6,8 @@ import fs from 'fs';
 import path from 'path';
 import { Readable } from 'stream';
 
+export const dynamic = "force-dynamic";
+
 const MIME_BY_EXT: Record<string, string> = {
   '.mp4': 'video/mp4',
   '.webm': 'video/webm',

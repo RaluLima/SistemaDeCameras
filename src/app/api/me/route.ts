@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth';
 import { verifyToken } from '@/lib/jwt';
 import prisma from '@/lib/prisma';
 
+export const dynamic = "force-dynamic";
+
 async function getUserFromRequest(req: NextRequest) {
   const auth = req.headers.get('authorization');
   if (auth?.startsWith('Bearer ')) {

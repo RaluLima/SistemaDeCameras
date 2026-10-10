@@ -3,6 +3,8 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import { hasAIAccess, isRetentionDaysValid } from "@/lib/plan";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 const VALID_CAMERA_TYPES = ["IP", "USB", "ANALOG", "WIRELESS", "OTHER"];
 const VALID_STATUSES = ["ACTIVE", "INACTIVE", "ERROR"];
 
@@ -62,7 +64,8 @@ export async function POST(req: NextRequest) {
       },
     });
     return NextResponse.json(camera, { status: 201 });
-  } catch {
+  } catch (err) {
+    console.error("Create camera error:", err);
     return NextResponse.json({ error: "Erro interno do servidor" }, { status: 500 });
   }
 }

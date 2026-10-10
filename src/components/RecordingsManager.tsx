@@ -45,6 +45,8 @@ export function RecordingsManager({ isAdmin = false }: { isAdmin?: boolean }) {
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState<Recording | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   const fetchRecordings = useCallback(async () => {
     setLoading(true);
@@ -72,12 +74,78 @@ export function RecordingsManager({ isAdmin = false }: { isAdmin?: boolean }) {
 
   useEffect(() => { fetchRecordings(); }, [fetchRecordings]);
 
+  async function handleDelete(rec: Recording) {
+    if (
+      !confirm(
+        `Remover a gravação de ${formatDate(rec.createdAt)} da câmera "${rec.camera.name}"?\nEsta ação não pode ser desfeita.`
+      )
+    )
+      return;
+
+    setDeletingId(rec.id);
+    try {
+      const res = await fetch(`/api/recordings/${rec.id}`, { method: "DELETE" });
+      if (res.ok) {
+        toast.success("Gravação removida");
+        setRecordings((prev) => prev.filter((r) => r.id !== rec.id));
+        if (playing?.id === rec.id) setPlaying(null);
+      } else {
+        const json = await res.json().catch(() => ({} as any));
+        toast.error(json.error || "Erro ao remover gravação");
+      }
+    } catch {
+      toast.error("Erro de conexão");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function handleDeleteListed() {
+    if (recordings.length === 0) return;
+    if (
+      !confirm(
+        `Remover ${recordings.length} gravação(ões) listada(s)?\nEsta ação não pode ser desfeita.`
+      )
+    )
+      return;
+
+    setBulkDeleting(true);
+    try {
+      const res = await fetch("/api/recordings", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: recordings.map((r) => r.id) }),
+      });
+      const json = await res.json().catch(() => ({} as any));
+      if (res.ok) {
+        toast.success(`${json.deleted} gravação(ões) removida(s)`);
+        setPlaying(null);
+        fetchRecordings();
+      } else {
+        toast.error(json.error || "Erro ao remover gravações");
+      }
+    } catch {
+      toast.error("Erro de conexão");
+    } finally {
+      setBulkDeleting(false);
+    }
+  }
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">
           {isAdmin ? "Todas as Gravações" : "Minhas Gravações"}
         </h1>
+        {recordings.length > 0 && (
+          <button
+            onClick={handleDeleteListed}
+            disabled={bulkDeleting}
+            className="bg-red-50 dark:bg-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/60 disabled:opacity-60 text-red-600 dark:text-red-300 border border-red-200 dark:border-red-800 px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap"
+          >
+            {bulkDeleting ? "Removendo..." : `🗑 Excluir listadas (${recordings.length})`}
+          </button>
+        )}
       </div>
 
       <div className="card p-4 mb-6 flex flex-col sm:flex-row gap-3">
@@ -164,6 +232,13 @@ export function RecordingsManager({ isAdmin = false }: { isAdmin?: boolean }) {
                       >
                         ⬇ Baixar
                       </a>
+                      <button
+                        onClick={() => handleDelete(rec)}
+                        disabled={deletingId === rec.id}
+                        className="bg-red-50 dark:bg-red-900/40 hover:bg-red-100 dark:hover:bg-red-900/60 disabled:opacity-60 text-red-600 dark:text-red-300 px-2.5 py-1 rounded-md text-xs font-medium"
+                      >
+                        {deletingId === rec.id ? "..." : "🗑 Excluir"}
+                      </button>
                     </div>
                   </td>
                 </tr>

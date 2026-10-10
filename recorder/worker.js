@@ -37,6 +37,33 @@ if (!RECORDER_KEY) {
 
 fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
+const PID_FILE = process.env.PID_FILE || path.join(__dirname, 'worker.pid');
+
+function writePidFile() {
+  try {
+    fs.writeFileSync(PID_FILE, String(process.pid), 'utf8');
+  } catch (err) {
+    console.error('[recorder] nao foi possivel gravar o pid file:', err.message);
+  }
+}
+
+function clearPidFile() {
+  try {
+    if (fs.existsSync(PID_FILE)) fs.unlinkSync(PID_FILE);
+  } catch {}
+}
+
+function onExit() {
+  clearPidFile();
+  process.exit(0);
+}
+
+process.on('exit', clearPidFile);
+process.on('SIGINT', onExit);
+process.on('SIGTERM', onExit);
+
+writePidFile();
+
 const active = new Map(); // cameraId -> { job, stop }
 
 function log(msg) {

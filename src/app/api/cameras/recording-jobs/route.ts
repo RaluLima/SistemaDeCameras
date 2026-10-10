@@ -3,6 +3,8 @@ import { getAuthUser } from '@/lib/auth-helpers';
 import { hasRecorderAccess } from '@/lib/service-auth';
 import prisma from '@/lib/prisma';
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const auth = await getAuthUser(req);

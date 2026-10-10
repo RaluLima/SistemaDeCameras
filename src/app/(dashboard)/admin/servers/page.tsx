@@ -4,11 +4,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 interface ServiceStatus {
+  key: string;
   name: string;
   status: "running" | "stopped" | "error";
   port?: number;
   pid?: number;
 }
+
+const SERVICE_KEYS = ["postgresql", "redis", "nextjs", "mediamtx", "ai", "cloudflare", "recorder"];
 
 export default function ServersPage() {
   const { data: session, status: authStatus } = useSession();
@@ -74,7 +77,7 @@ export default function ServersPage() {
     setLoading(true);
     setMessage(null);
     try {
-      for (const service of ["postgresql", "nextjs", "cloudflare"]) {
+      for (const service of SERVICE_KEYS) {
         await fetch("/api/servers/toggle", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -94,7 +97,7 @@ export default function ServersPage() {
     setLoading(true);
     setMessage(null);
     try {
-      for (const service of ["cloudflare", "nextjs", "postgresql"]) {
+      for (const service of [...SERVICE_KEYS].reverse()) {
         await fetch("/api/servers/toggle", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -197,7 +200,7 @@ export default function ServersPage() {
         <div className="grid gap-4">
           {services.map((service) => (
             <div
-              key={service.name}
+              key={service.key}
               className="bg-white dark:bg-dark-100 rounded-xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm"
             >
               <div className="flex items-center justify-between">
@@ -222,15 +225,15 @@ export default function ServersPage() {
                     {getStatusText(service.status)}
                   </span>
                   <button
-                    onClick={() => toggleService(service.name.toLowerCase().replace(" ", ""))}
-                    disabled={toggling === service.name.toLowerCase().replace(" ", "")}
+                    onClick={() => toggleService(service.key)}
+                    disabled={toggling === service.key}
                     className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                       service.status === "running"
                         ? "bg-red-600 hover:bg-red-700 text-white"
                         : "bg-green-600 hover:bg-green-700 text-white"
                     } disabled:opacity-50`}
                   >
-                    {toggling === service.name.toLowerCase().replace(" ", "") ? (
+                    {toggling === service.key ? (
                       <span className="flex items-center gap-2">
                         <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

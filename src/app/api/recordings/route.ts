@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth-helpers';
 import { retentionCutoff } from '@/lib/plan';
+import { deleteRecordingFile } from '@/lib/recording-file';
 import prisma from '@/lib/prisma';
+
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
@@ -123,6 +126,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(recording, { status: 201 });
   } catch (err) {
     console.error('Recording create error:', err);
+    return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const auth = await getAuthUser(req);
+    if (!auth) {
+      return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+    }
+
+    const body = await req.json().catch(() => null);
+    const ids: string[] = Array.isArray(body?.ids) ? body.ids : [];
+    if (ids.length === 0) {
+      return NextResponse.json({ error: 'ids obrigatório' }, { status: 400 });
+    }
+    if (ids.length > 500) {
+      return NextResponse.json({ error: 'Limite de 500 gravações por requisição' }, { status: 400 });
+    }
+
+    const rows = await prisma.recording.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, filePath: true, camera: { select: { userId: true } } },
+    });
+
+    // não-admin só remove as gravações das próprias câmeras
+    const own = rows.filter((r) => auth.role === 'ADMIN' || r.camera.userId === auth.id);
+    if (own.length === 0) {
+      return NextResponse.json({ error: 'Acesso negado' }, { status: 403 });
+    }
+
+    await prisma.recording.deleteMany({ where: { id: { in: own.map((r) => r.id) } } });
+
+    let filesRemoved = 0;
+    for (const r of own) {
+      if (deleteRecordingFile(r.filePath)) filesRemoved++;
+    }
+
+    return NextResponse.json({
+      deleted: own.length,
+      filesRemoved,
+      skipped: ids.length - own.length,
+    });
+  } catch (err) {
+    console.error('Recordings bulk delete error:', err);
     return NextResponse.json({ error: 'Erro interno' }, { status: 500 });
   }
 }
